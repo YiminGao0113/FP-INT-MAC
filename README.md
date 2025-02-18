@@ -36,12 +36,12 @@ You can install these tools as follows:
    ```
 2. Run the simulation:
    ```bash
-  make fp_int_mul
+   make fp_int_mul
    ```
 3. Expected Results should show that the results passed simulation verification.
 4. To clean the generated temp files:
    ```bash
-  make clean
+   make clean
    ```
 
 
