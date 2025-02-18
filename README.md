@@ -49,6 +49,6 @@ You can install these tools as follows:
    ```
 
 ## To do
-- Finish the Accumulation module for Integer
-- Implement the MAC operation for Posit4
+- Finish the Accumulation module for Integer (done)
+- Implement and verify the entire MAC operation for Posit4
 - Integrate synthesis flow into the Repo
