@@ -2,6 +2,8 @@
 
 # Directory for output files
 BUILD_DIR := build
+SRC_DIR := src
+TB_DIR := tb
 
 # Phony target to handle any base name, clean, and all
 .PHONY: all clean $(MAKECMDGOALS)
@@ -15,7 +17,7 @@ all:
 $(MAKECMDGOALS):
 	@echo "Processing $@..."
 	@mkdir -p $(BUILD_DIR)
-	iverilog -o $(BUILD_DIR)/$@_dsn $@_tb.v $@.v && vvp $(BUILD_DIR)/$@_dsn 
+	iverilog -o $(BUILD_DIR)/$@_dsn $(TB_DIR)/$@_tb.v $(SRC_DIR)/$@.v && vvp $(BUILD_DIR)/$@_dsn 
 # && gtkwave $(BUILD_DIR)/$@.vcd
 
 # Clean rule
