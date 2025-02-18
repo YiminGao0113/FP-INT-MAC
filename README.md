@@ -17,14 +17,14 @@ This project implements a **FP16-INT4 / POSIT4 MAC (Multiply-Accumulate) Unit** 
 
 You can install these tools as follows:
 
-### Installing Icarus Verilog (iverilog)
+### Installing Icarus Verilog (iverilog) and GTKWave
 - On Ubuntu:
   ```bash
-  sudo apt-get install iverilog
+  sudo apt-get install iverilog gtkwave
   ```
 - On macOS:
   ```bash
-  brew install gtkwave
+  brew install iverilog gtkwave
   ```
 
 ## How to Run the Simulation
