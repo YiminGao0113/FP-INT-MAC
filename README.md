@@ -39,11 +39,14 @@ You can install these tools as follows:
    make fp_int_mul
    ```
 3. Expected Results should show that the results passed simulation verification.
-4. To clean the generated temp files:
+4. If you want to observe the generated waveform, run gtkwave:
+   ```bash
+   gtkwave build/design.vcd
+   ```
+5. To clean the generated temp files:
    ```bash
    make clean
    ```
-
 
 ## To do
 - Finish the Accumulation module for Integer

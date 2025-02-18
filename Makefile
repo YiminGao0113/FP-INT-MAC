@@ -15,7 +15,8 @@ all:
 $(MAKECMDGOALS):
 	@echo "Processing $@..."
 	@mkdir -p $(BUILD_DIR)
-	iverilog -o $(BUILD_DIR)/$@_dsn $@_tb.v $@.v && vvp $(BUILD_DIR)/$@_dsn && gtkwave $(BUILD_DIR)/$@.vcd
+	iverilog -o $(BUILD_DIR)/$@_dsn $@_tb.v $@.v && vvp $(BUILD_DIR)/$@_dsn 
+# && gtkwave $(BUILD_DIR)/$@.vcd
 
 # Clean rule
 clean:
