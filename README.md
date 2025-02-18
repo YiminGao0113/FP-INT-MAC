@@ -34,7 +34,7 @@ You can install these tools as follows:
    git clone https://github.com/<your-username>/FP16-INT4-POSIT4-MAC.git
    cd FP16-INT4-POSIT4-MAC
    ```
-2. Run the simulation:
+2. Run the simulation: (e.g. to simulate fp_int_mul unit run make fp_int_mul)
    ```bash
    make design_name
    ```
