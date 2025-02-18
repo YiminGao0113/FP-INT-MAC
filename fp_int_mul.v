@@ -14,7 +14,7 @@ module fp_int_mul #(
     // output [ACC_WIDTH-1:0] result,
     output                 sign_out,
     output [4:0]           exp_out,
-    output [14:0]          mantissa_out,
+    output [13:0]          mantissa_out,
     output                 done    
 );
 
@@ -56,9 +56,9 @@ always @(posedge clk or negedge rst)
 assign done = count == 4;
 
 // The accumulator in the Multiplier unit
-reg  [14:0] mantissa_reg;
+reg  [13:0] mantissa_reg;
 // wire  [14:0] mantissa_temp;
-reg   [14:0] shifted_fp;
+reg   [13:0] shifted_fp;
 
 fixed_point_adder fixed_adder(mantissa_reg, shifted_fp, mantissa_out);
 
@@ -69,23 +69,23 @@ always @(posedge clk or negedge rst)
 
 always @(*) begin
     case (count)
-        2'b00: shifted_fp <= 15'b0;
-        2'b01: shifted_fp <= weight_reg[2]? fixed_mantissa<<2: 15'b0;
-        2'b10: shifted_fp <= weight_reg[1]? fixed_mantissa<<1: 15'b0;
-        2'b11: shifted_fp <= weight_reg[0]? fixed_mantissa: 15'b0;
-        default: shifted_fp <= 15'b0;
+        2'b00: shifted_fp <= 14'b0;
+        2'b01: shifted_fp <= weight_reg[2]? fixed_mantissa<<2: 14'b0;
+        2'b10: shifted_fp <= weight_reg[1]? fixed_mantissa<<1: 14'b0;
+        2'b11: shifted_fp <= weight_reg[0]? fixed_mantissa: 14'b0;
+        default: shifted_fp <= 14'b0;
     endcase
 end
 
 endmodule
 
 module fixed_point_adder(
-    input      [14:0]  A,
-    input      [14:0]  B,
-    output     [14:0]  C
+    input      [13:0]  A,
+    input      [13:0]  B,
+    output     [13:0]  C
 );
 // This is the intermediate represetation in order to have the least # of rounding at the end of computation.
-// The 15-bit fixed point representation consists of 5 bits . 10 bits mantissa
+// The 14-bit fixed point representation consists of 4 bits . 10 bits mantissa
 // which is able to hold everything accurately without 
 assign C = A + B;
 endmodule

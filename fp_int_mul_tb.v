@@ -83,8 +83,8 @@ module fp_int_mul_tb;
         end
 
         // Verify the mantissa (fixed-point representation of -33.75)
-        if (mantissa_out !== 15'b010000111110110) begin
-            $display("ERROR: mantissa_out is incorrect. Expected 010000111110110, got %b", mantissa_out);
+        if (mantissa_out !== 14'b10000111110110) begin
+            $display("ERROR: mantissa_out is incorrect. Expected 10000111110110, got %b", mantissa_out);
         end else begin
             $display("mantissa_out is correct.");
         end
