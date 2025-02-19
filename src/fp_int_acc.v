@@ -8,7 +8,8 @@ module fp_int_acc (
     input  [4:0]   exp_in,
     input  [13:0]  fixed_point_in,
     output [4:0]   exp_out,
-    output [31:0]  fixed_point_out
+    output [31:0]  fixed_point_out,
+    output reg     done
 );
 
 wire [4:0] diff;
@@ -17,7 +18,7 @@ assign diff = exp_in - exp_min;
 reg [31:0] fixed_point_reg;
 reg [4:0] exp_reg;
 reg [31:0] fixed_point_in_shifted, fixed_point_acc_shifted;
-reg shifted, done;
+reg shifted;
 
 always @(posedge clk or negedge rst)
     if (!rst) begin
