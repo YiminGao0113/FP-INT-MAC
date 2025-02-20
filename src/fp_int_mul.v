@@ -1,4 +1,4 @@
-// To get started fp_int_mul unit here is only for fixed-precision arithmetic: fp16 x+ int4 operations
+  // To get started fp_int_mul unit here is only for fixed-precision arithmetic: fp16 x+ int4 operations
 // fp16 : 1=bit sign + 5-bit exponent + 10-bit mantissa
 module fp_int_mul #(
     parameter ACT_WIDTH = 16,
@@ -15,7 +15,7 @@ module fp_int_mul #(
     output                 sign_out,
     output [4:0]           exp_out,
     output [13:0]          mantissa_out,
-    output                 done    
+    output                 start_acc    
 );
 
 reg [W_WIDTH-1:0]          weight_reg;
@@ -46,14 +46,15 @@ reg [2:0] count;
 // counter logic here
 always @(posedge clk or negedge rst)
     if (!rst || start&&!busy) begin
-        count <= 0;
+        count <= 1;
     end
     else if (busy && count != 4) count <= count + 1;
     else if (busy && count == 4) begin
         busy  <= 0;
+        count <= 0;
     end
 
-assign done = count == 4;
+assign start_acc = count == 4;
 
 // The accumulator in the Multiplier unit
 reg  [13:0] mantissa_reg;
@@ -65,14 +66,15 @@ fixed_point_adder fixed_adder(mantissa_reg, shifted_fp, mantissa_out);
 
 always @(posedge clk or negedge rst)
     if (!rst) mantissa_reg <= 0;
-    else mantissa_reg <= mantissa_out;
+    else if (!start_acc) mantissa_reg <= mantissa_out;
+    else mantissa_reg<=0;
 
 always @(*) begin
     case (count)
-        2'b00: shifted_fp <= 14'b0;
-        2'b01: shifted_fp <= weight_reg[2]? fixed_mantissa<<2: 14'b0;
-        2'b10: shifted_fp <= weight_reg[1]? fixed_mantissa<<1: 14'b0;
-        2'b11: shifted_fp <= weight_reg[0]? fixed_mantissa: 14'b0;
+        3'b000: shifted_fp <= 14'b0;
+        3'b001: shifted_fp <= weight_reg[2]? fixed_mantissa<<2: 14'b0;
+        3'b010: shifted_fp <= weight_reg[1]? fixed_mantissa<<1: 14'b0;
+        3'b011: shifted_fp <= weight_reg[0]? fixed_mantissa: 14'b0;
         default: shifted_fp <= 14'b0;
     endcase
 end

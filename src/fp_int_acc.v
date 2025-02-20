@@ -23,9 +23,9 @@ reg shifted;
 always @(posedge clk or negedge rst)
     if (!rst) begin
         fixed_point_reg <= 0;
-        done <= 1;
+        done <= 0;
     end
-    else if (shifted) begin
+    else if (shifted&&!done) begin
         fixed_point_reg <= sign_in? fixed_point_acc_shifted - fixed_point_in_shifted: fixed_point_acc_shifted + fixed_point_in_shifted;
         shifted <= 0;
         done <= 1;
@@ -38,9 +38,9 @@ always @(posedge clk or negedge rst) begin
         exp_reg <= 0;
         shifted <= 0;
     end
-    else if (start && !shifted && done) begin
+    else if (start && !shifted) begin
         done <= 0;
-        if (~&diff) begin
+        if (~|diff) begin
             exp_reg <= exp_min;
             fixed_point_in_shifted <= fixed_point_in;
             fixed_point_acc_shifted <= fixed_point_acc;

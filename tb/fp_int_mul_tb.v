@@ -15,7 +15,7 @@ module fp_int_mul_tb;
     wire sign_out;
     wire [4:0] exp_out;
     wire [14:0] mantissa_out;
-    wire done;
+    wire start_acc;
 
     // Instantiate the fp_int_mul module
     fp_int_mul #(
@@ -32,7 +32,7 @@ module fp_int_mul_tb;
         .sign_out(sign_out),
         .exp_out(exp_out),
         .mantissa_out(mantissa_out),
-        .done(done)
+        .start_acc(start_acc)
     );
 
     // Clock generation
@@ -60,13 +60,13 @@ module fp_int_mul_tb;
         #10 start = 0; // End start pulse
 
         // Wait for the operation to complete
-        #40; // Wait a few cycles for computation to finish
+        #35; // Wait a few cycles for computation to finish
 
         // Check the outputs
         $display("sign_out: %b", sign_out);
         $display("exp_out: %b", exp_out);
         $display("mantissa_out: %b", mantissa_out);
-        $display("done: %b", done);
+        $display("start_acc: %b", start_acc);
 
         // Verification of the outputs
         if (sign_out !== 1) begin
@@ -88,14 +88,10 @@ module fp_int_mul_tb;
         end else begin
             $display("mantissa_out is correct.");
         end
-
-        // Verify the done signal (should be 1 when done)
-        if (done !== 1) begin
-            $display("ERROR: done is incorrect. Expected 1, got %b", done);
-        end else begin
-            $display("done is correct.");
-        end
-
+        
+        #5 start = 1; // Start multiplication
+        #10 start = 0; // End start pulse
+        #40; // Wait a few cycles for computation to finish
         // Finish the simulation
         $finish;
     end

@@ -16,7 +16,7 @@ module fp_int_mac #(
 );
 
 // Intermediate signals between Multiplier and Accumulator
-wire                    mul_done;
+wire                    start_acc;
 wire                    sign_out;
 wire [4:0]              exp_out_mul;
 wire [13:0]             mantissa_out;
@@ -40,14 +40,14 @@ fp_int_mul #(
     .sign_out(sign_out),
     .exp_out(exp_out_mul),
     .mantissa_out(mantissa_out),
-    .done(mul_done)
+    .start_acc(start_acc)
 );
 
 // Instantiate the Accumulator Unit
 fp_int_acc acc_unit (
     .clk(clk),
     .rst(rst),
-    .start(mul_done),
+    .start(start_acc),
     .sign_in(sign_out),
     .exp_min(exp_min),
     .fixed_point_acc(fixed_point_acc),
