@@ -54,7 +54,7 @@ You can install these tools as follows:
 
 ## Block diagram of the FP16-VariableInt unit
 ![image](https://github.com/user-attachments/assets/be9a95a6-bc4c-4e2b-828c-b2c4beb3a58b)
-## Potential architecture of an energy-efficient, precision-scalable dataflow Accelerator for FP-INT GEMM 
+## Overall architecture of an energy-efficient, precision-scalable dataflow Accelerator for FP-INT GEMM 
 ![image](https://github.com/user-attachments/assets/ab977612-e905-4e00-91c1-29c2a66dae62)
 
 ## To do
