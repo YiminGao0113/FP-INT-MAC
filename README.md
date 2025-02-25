@@ -51,6 +51,6 @@ You can install these tools as follows:
 ## To do
 - Finish the Accumulation module for Integer (done✅)
 - Implement and verify the entire MAC operation (done✅)
-- Implement and verify the bit-serial weight stream FP-INT MAC unit
-- Implement and verify the MAC unit for Posit4
+- Implement and verify the bit-serial weight stream FP-INT MAC unit (done✅)
+- Implement and verify the MAC unit for Posit4 (done✅)
 - Integrate synthesis flow into the Repo
