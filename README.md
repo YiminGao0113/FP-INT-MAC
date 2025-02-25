@@ -52,6 +52,9 @@ You can install these tools as follows:
    make clean
    ```
 
+## Block diagram of the FP16-VariableInt unit
+[fp_int.pdf](https://github.com/user-attachments/files/18973536/fp_int.pdf)
+
 ## To do
 - Finish the Accumulation module for Integer (done✅)
 - Implement and verify the entire MAC operation (done✅)
