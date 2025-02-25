@@ -61,4 +61,5 @@ You can install these tools as follows:
 - Implement and verify the entire MAC operation (done✅)
 - Implement and verify the bit-serial weight stream FP-INT MAC unit (done✅)
 - Implement and verify the MAC unit for Posit4 (done✅)
+- Integrate the FP-INT unit as PE into an existing systolic array project
 - Integrate synthesis flow into the Repo
