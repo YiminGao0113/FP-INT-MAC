@@ -69,7 +69,7 @@ fixed_point_adder fixed_adder(mantissa_reg, shifted_fp, mantissa_out);
 
 always @(posedge clk or negedge rst)
     if (!rst) mantissa_reg <= 0;
-    else if (!start_acc) mantissa_reg <= mantissa_out;
+    else if (!start_acc&valid) mantissa_reg <= mantissa_out;
     else mantissa_reg<=0;
 
 
