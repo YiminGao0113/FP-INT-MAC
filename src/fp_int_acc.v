@@ -3,7 +3,7 @@ module fp_int_acc (
     input          rst,
     input          start,
     input          sign_in,
-    input  [4:0]   exp_min,
+    input  [4:0]   exp_set,
     input  [31:0]  fixed_point_acc,
     input  [4:0]   exp_in,
     input  [13:0]  fixed_point_in,
@@ -13,11 +13,11 @@ module fp_int_acc (
 );
 
 wire [4:0] diff;
-assign diff = exp_in - exp_min;
+assign diff = exp_in - exp_set;
 
 reg [31:0] fixed_point_reg;
 reg [4:0] exp_reg;
-reg [31:0] fixed_point_in_shifted, fixed_point_acc_shifted;
+reg [31:0] fixed_point_in_shifted;
 reg shifted;
 
 always @(posedge clk or negedge rst)
@@ -26,7 +26,7 @@ always @(posedge clk or negedge rst)
         done <= 0;
     end
     else if (shifted&&!done) begin
-        fixed_point_reg <= sign_in? fixed_point_acc_shifted - fixed_point_in_shifted: fixed_point_acc_shifted + fixed_point_in_shifted;
+        fixed_point_reg <= sign_in? fixed_point_acc - fixed_point_in_shifted: fixed_point_acc + fixed_point_in_shifted;
         shifted <= 0;
         done <= 1;
     end
@@ -34,32 +34,25 @@ always @(posedge clk or negedge rst)
 always @(posedge clk or negedge rst) begin
     if (!rst) begin
         fixed_point_in_shifted <= 0;
-        fixed_point_acc_shifted <= 0;
         exp_reg <= 0;
         shifted <= 0;
     end
     else if (start && !shifted) begin
         done <= 0;
-        if (~|diff) begin
-            exp_reg <= exp_min;
+        if (~|diff) begin // If diff == 0
             fixed_point_in_shifted <= fixed_point_in;
-            fixed_point_acc_shifted <= fixed_point_acc;
         end
-        else if (!diff[4]) begin // If exp_min < exp_in, diff[4] would be 0
-            exp_reg <= exp_min;
+        else if (!diff[4]) begin // If exp_set < exp_in, diff[4] would be 0
             fixed_point_in_shifted <= fixed_point_in<<diff; //shift by the two's complement of diff since diff would be negative values here
-            fixed_point_acc_shifted <= fixed_point_acc;
         end
-        else begin // If exp_min > exp_in, diff[4] would be 1
-            exp_reg <= exp_in;
-            fixed_point_in_shifted <= fixed_point_in;
-            fixed_point_acc_shifted <= fixed_point_acc<<-diff; //shift by diff
+        else begin // If exp_set > exp_in, diff[4] would be 1
+            fixed_point_in_shifted <= fixed_point_in>>-diff;
         end
         shifted <= 1;
+        exp_reg <= exp_set;
     end
     else begin
         fixed_point_in_shifted <= fixed_point_in;
-        fixed_point_acc_shifted <= fixed_point_acc;
     end
 end
 

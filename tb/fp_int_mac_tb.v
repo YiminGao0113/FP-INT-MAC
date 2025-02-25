@@ -72,7 +72,7 @@ module fp_int_mac_tb;
         #15 start = 1;
         #10 start = 0;
 
-        #80
+        #75
 
         // Display results
         $display("exp_out: %b", exp_out);

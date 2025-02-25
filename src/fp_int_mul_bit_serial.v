@@ -14,7 +14,7 @@ module fp_int_mul_bit_serial #(
     input [3:0]            precision,
     // output [ACC_WIDTH-1:0] result,
     output reg             sign_out,
-    output [4:0]           exp_out,
+    output reg [4:0]       exp_out,
     output [13:0]          mantissa_out,
     output reg             start_acc    
 );
@@ -77,7 +77,6 @@ always @(*) begin
     case (count)
         3'b000: begin
             shifted_fp = 14'b0;
-            sign_out = w^act[ACT_WIDTH-1];
             // start_acc = 0;
         end
         3'b001: shifted_fp = w? fixed_mantissa<<2: 14'b0;
@@ -88,14 +87,23 @@ always @(*) begin
         end
         default: begin
             shifted_fp = 14'b0;
-            sign_out = 0;
+            // sign_out = 0;
             // start_acc = 0;
         end
     endcase
 end
 
 always @(posedge clk or negedge rst)
-    if (!rst) start_acc <= 0;
+    if (!rst) begin
+        start_acc <= 0;
+        sign_out <= 0;
+        exp_out <= 0;
+    end
+    else if (count == 0) begin
+        exp_out <= act_exponent;
+        sign_out <= w^act[ACT_WIDTH-1];
+        start_acc <= 0;
+    end
     else if (count==_precision-1) start_acc <= 1;
     else start_acc <= 0;
 

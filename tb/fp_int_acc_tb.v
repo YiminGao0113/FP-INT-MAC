@@ -22,7 +22,7 @@ module fp_int_acc_tb;
         .rst(rst),
         .start(start),
         .sign_in(sign_in),
-        .exp_min(exp_min),
+        .exp_set(exp_min),
         .fixed_point_acc(fixed_point_acc),
         .exp_in(exp_in),
         .fixed_point_in(fixed_point_in),
@@ -48,8 +48,8 @@ module fp_int_acc_tb;
         fixed_point_in = 14'b10000111110110;  // Fixed-point input as 14-bit value
         // Expected results for verification
         expected_sign_out = 0;
-        expected_exp_out = 5'b01111;  // Expected exponent output
-        expected_fixed_point_out = 32'b00000000000000000010000111111000; // Expected fixed-point output
+        expected_exp_out = 5'b10000;  // Expected exponent output
+        expected_fixed_point_out = 32'b0000000000000000001000011111100; // Expected fixed-point output
 
         // Create VCD file for GTKWave
         $dumpfile("build/fp_int_acc.vcd");
