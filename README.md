@@ -53,7 +53,8 @@ You can install these tools as follows:
    ```
 
 ## Block diagram of the FP16-VariableInt unit
-[fp_int.pdf](https://github.com/user-attachments/files/18973536/fp_int.pdf)
+![image](https://github.com/user-attachments/assets/be9a95a6-bc4c-4e2b-828c-b2c4beb3a58b)
+
 
 ## To do
 - Finish the Accumulation module for Integer (done✅)
