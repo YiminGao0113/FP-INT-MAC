@@ -2,59 +2,63 @@
 // fp16 : 1=bit sign + 5-bit exponent + 10-bit mantissa
 module fp_int_mul #(
     parameter ACT_WIDTH = 16,
-    parameter W_WIDTH  = 4,
+    // parameter W_WIDTH  = 4,
     parameter ACC_WIDTH = 32
 )(
     input                  clk,
     input                  rst,
-    input [ACT_WIDTH-1:0]  activation,
-    input [W_WIDTH-1:0]    weight,
-    input                  start,
-    output reg             busy,
+    input [ACT_WIDTH-1:0]  act,
+    input                  w,
+    input                  valid,
+    input                  set, 
+    input [3:0]            precision,
     // output [ACC_WIDTH-1:0] result,
-    output                 sign_out,
-    output [4:0]           exp_out,
+    output reg             sign_out,
+    output reg [4:0]       exp_out,
     output [13:0]          mantissa_out,
-    output                 start_acc    
+    output reg             start_acc    
 );
 
-reg [W_WIDTH-1:0]          weight_reg;
-reg [ACT_WIDTH-1:0]        activation_reg;
-wire                       act_sign;
-wire [4:0]                 act_exponent;
+// reg [ACT_WIDTH-1:0]       _act;
+// reg                       _w;
+wire                      act_sign;
+wire [4:0]                act_exponent;
 wire [9:0]                act_mantissa;
 wire [10:0]               fixed_mantissa;
-assign {act_sign, act_exponent, act_mantissa} = activation_reg;
+assign {act_sign, act_exponent, act_mantissa} = act;
 assign fixed_mantissa = {1'b1, act_mantissa};
-assign sign_out = weight_reg[W_WIDTH-1] ^ activation_reg[ACT_WIDTH-1];
-assign exp_out  = activation[15:10];
 
-// Weight line and activation initialization
+reg [3:0]             _precision;
+
 always @(posedge clk or negedge rst)
+    if (!rst) _precision <= 0;
+    else if (set) _precision <= precision;
+
+reg [2:0]             count;
+
+always @(posedge clk or negedge rst) begin
     if (!rst) begin
-        weight_reg      <= 0;
-        activation_reg  <= 0;
-        busy            <= 0;
-    end
-    else if (start&&!busy) begin
-        weight_reg      <= weight;
-        activation_reg  <= activation;
-        busy            <= 1;
-    end
-
-reg [2:0] count;
-// counter logic here
-always @(posedge clk or negedge rst)
-    if (!rst || start&&!busy) begin
-        count <= 1;
-    end
-    else if (busy && count != 4) count <= count + 1;
-    else if (busy && count == 4) begin
-        busy  <= 0;
         count <= 0;
+        // start_acc <= 0;
+        // _act <= 0;
+        // _w <= 0;
     end
-
-assign start_acc = count == 4;
+    else begin
+        if (valid) begin
+            // _act <= act;
+            // _w <= w;
+            if (count<_precision-1) count <= count + 1;
+            else begin
+                count <= 0;
+                // start_acc <= 1;
+            end
+        end
+        else begin
+            // _act <= _act;
+            count <= 0;
+        end
+    end
+end
 
 // The accumulator in the Multiplier unit
 reg  [13:0] mantissa_reg;
@@ -63,21 +67,45 @@ reg   [13:0] shifted_fp;
 
 fixed_point_adder fixed_adder(mantissa_reg, shifted_fp, mantissa_out);
 
-
 always @(posedge clk or negedge rst)
     if (!rst) mantissa_reg <= 0;
-    else if (!start_acc) mantissa_reg <= mantissa_out;
+    else if (!start_acc&valid) mantissa_reg <= mantissa_out;
     else mantissa_reg<=0;
+
 
 always @(*) begin
     case (count)
-        3'b000: shifted_fp <= 14'b0;
-        3'b001: shifted_fp <= weight_reg[2]? fixed_mantissa<<2: 14'b0;
-        3'b010: shifted_fp <= weight_reg[1]? fixed_mantissa<<1: 14'b0;
-        3'b011: shifted_fp <= weight_reg[0]? fixed_mantissa: 14'b0;
-        default: shifted_fp <= 14'b0;
+        3'b000: begin
+            shifted_fp = 14'b0;
+            // start_acc = 0;
+        end
+        3'b001: shifted_fp = w? fixed_mantissa<<2: 14'b0;
+        3'b010: shifted_fp = w? fixed_mantissa<<1: 14'b0;
+        3'b011: begin
+            shifted_fp = w? fixed_mantissa: 14'b0;
+            // start_acc = 1;
+        end
+        default: begin
+            shifted_fp = 14'b0;
+            // sign_out = 0;
+            // start_acc = 0;
+        end
     endcase
 end
+
+always @(posedge clk or negedge rst)
+    if (!rst) begin
+        start_acc <= 0;
+        sign_out <= 0;
+        exp_out <= 0;
+    end
+    else if (count == 0) begin
+        exp_out <= act_exponent;
+        sign_out <= w^act[ACT_WIDTH-1];
+        start_acc <= 0;
+    end
+    else if (count==_precision-1) start_acc <= 1;
+    else start_acc <= 0;
 
 endmodule
 

@@ -13,10 +13,10 @@ all: fp_int_mac
 
 # Rule to compile fp_int_mac with dependencies when running `make all`
 fp_int_mac:
-	@echo "Processing fp_int_mac_bit_serial..."
+	@echo "Processing fp_int_mac..."
 	@mkdir -p $(BUILD_DIR)
-	iverilog -o $(BUILD_DIR)/fp_int_mac_bit_serial_dsn $(TB_DIR)/fp_int_mac_bit_serial_tb.v $(SRC_DIR)/fp_int_mac_bit_serial.v $(SRC_DIR)/fp_int_mul_bit_serial.v $(SRC_DIR)/fp_int_acc.v
-	vvp $(BUILD_DIR)/fp_int_mac_bit_serial_dsn 
+	iverilog -o $(BUILD_DIR)/fp_int_mac_dsn $(TB_DIR)/fp_int_mac_tb.v $(SRC_DIR)/fp_int_mac.v $(SRC_DIR)/fp_int_mul.v $(SRC_DIR)/fp_int_acc.v
+	vvp $(BUILD_DIR)/fp_int_mac_dsn 
 # && gtkwave $(BUILD_DIR)/fp_int_mac.vcd
 
 # Prevent `make all` from triggering the generic rule
