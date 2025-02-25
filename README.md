@@ -1,11 +1,11 @@
-# FP16-INT4 / POSIT4 MAC Unit
+# FP16-INT Unit
 
 ## Project Overview
 
-This project implements a **FP16-INT4 / POSIT4 MAC (Multiply-Accumulate) Unit** that computes MAC operations using **shift-and-add** in a **bit-serial fashion**. The unit is designed to efficiently perform mixed-precision arithmetic for machine learning and other hardware-accelerated applications.
+This project implements an **FP16-INT MAC (Multiply-Accumulate) Unit** that computes MAC operations using **shift-and-add** in a **bit-serial fashion**. The unit is designed to efficiently perform mixed-precision arithmetic for machine learning and other hardware-accelerated applications.
 
 ### Key Features:
-- Supports **FP16** and **INT4** (or **POSIT4**) arithmetic.
+- Supports **FP16** and **variable-precision INT** arithmetic.
 - Computes **MAC operations** using a shift-and-add technique.
 - **Bit-serial** implementation to reduce area and power consumption in hardware.
 - Verilog implementation for simulation and hardware integration.
@@ -31,12 +31,16 @@ You can install these tools as follows:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/<your-username>/FP16-INT4-POSIT4-MAC.git
-   cd FP16-INT4-POSIT4-MAC
+   git clone https://github.com/YiminGao0113/FP-INT-MAC.git
+   cd FP-INT-MAC
    ```
 2. Run the simulation: (e.g. to simulate fp_int_mul unit run make fp_int_mul)
    ```bash
    make design_name
+   ```
+   To simulate for fp_int_mac run 
+   ```bash
+   make all
    ```
 3. Expected Results should show that the results passed simulation verification.
 4. If you want to observe the generated waveform, run gtkwave:
