@@ -1,4 +1,4 @@
-# FP16-INT Unit
+# An Energy-Efficient and Precision-Scalable Accelerator for FP-INT GEMM in Edge LLM Inference
 
 ## Project Overview
 
