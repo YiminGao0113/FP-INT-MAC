@@ -1,15 +1,13 @@
 `timescale 1ns/1ps
 
 module fp_int_mac_tb;
-
+    parameter PRECISION = 4;
     parameter ACT_WIDTH = 16;
     parameter ACC_WIDTH = 32;
 
     reg clk;
     reg rst;
     reg valid;
-    reg [3:0] precision;
-    reg set;
     reg [ACT_WIDTH-1:0] act;
     reg w;
     reg [4:0] exp_set;
@@ -24,14 +22,13 @@ module fp_int_mac_tb;
 
     // Instantiate the MAC unit
     fp_int_mac #(
+        .PRECISION(PRECISION),
         .ACT_WIDTH(ACT_WIDTH),
         .ACC_WIDTH(ACC_WIDTH)
     ) uut (
         .clk(clk),
         .rst(rst),
         .valid(valid),
-        .precision(precision),
-        .set(set),
         .act(act),
         .w(w),
         .exp_set(exp_set),
@@ -68,8 +65,6 @@ module fp_int_mac_tb;
         clk = 0;
         rst = 1;
         valid = 0;
-        precision = 4;
-        set = 0;
         act = 16'b0100010101101001; // Example FP16 value
         w = 0;
         exp_set = 5'b10000; // Example exponent min
@@ -82,9 +77,6 @@ module fp_int_mac_tb;
         // Apply reset
         #10 rst = 0;
         #10 rst = 1;
-
-        #10 set = 1;
-        #10 set = 0;
 
         // Start the first MAC operation
         #15 valid = 1;

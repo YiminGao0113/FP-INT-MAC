@@ -4,14 +4,13 @@ module fp_int_mul_tb;
 
     parameter ACT_WIDTH = 16;
     parameter ACC_WIDTH = 32;
+    parameter PRECISION = 4;
 
     reg clk;
     reg rst;
     reg [ACT_WIDTH-1:0] act;
     reg w;
     reg valid;
-    reg set;
-    reg [3:0] precision;
     
     wire sign_out;
     wire [4:0] exp_out;
@@ -24,14 +23,12 @@ module fp_int_mul_tb;
     reg [13:0] expected_mantissa;
 
     // Instantiate the module under test
-    fp_int_mul #(ACT_WIDTH, ACC_WIDTH) uut (
+    fp_int_mul #(PRECISION, ACT_WIDTH, ACC_WIDTH) uut (
         .clk(clk),
         .rst(rst),
         .act(act),
         .w(w),
         .valid(valid),
-        .set(set),
-        .precision(precision),
         .sign_out(sign_out),
         .exp_out(exp_out),
         .mantissa_out(mantissa_out),
@@ -76,8 +73,6 @@ module fp_int_mul_tb;
         act = 16'h1234; // Example fixed activation value
         w = 0;
         valid = 0;
-        set = 0;
-        precision = 4;
 
         expected_sign = 0;
         expected_exp = 5'b00100;
@@ -87,10 +82,6 @@ module fp_int_mul_tb;
         #10 rst = 1;
         #10 rst = 0;
         #10 rst = 1;
-
-        // Set precision (enable set for one cycle)
-        #10 set = 1;
-        #10 set = 0;
         
         // Start simulation
         #10 valid = 1;

@@ -1,12 +1,11 @@
 module fp_int_mac #(
+    parameter PRECISION = 4,
     parameter ACT_WIDTH = 16,
     parameter ACC_WIDTH = 32
 )(
     input                   clk,
     input                   rst,
     input                   valid,
-    input [3:0]             precision,
-    input                   set,
     input [ACT_WIDTH-1:0]   act,
     input                   w,
     input [4:0]             exp_set,
@@ -31,8 +30,6 @@ fp_int_mul #(
     .act(act),
     .w(w),
     .valid(valid),
-    .set(set),
-    .precision(precision),
     .sign_out(sign_out),
     .exp_out(exp_out_mul),
     .mantissa_out(mantissa_out),
