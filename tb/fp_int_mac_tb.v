@@ -9,7 +9,7 @@ module fp_int_mac_tb;
     reg rst;
     reg valid;
     reg [3:0] precision;
-    reg set;
+    // reg set;
     reg [ACT_WIDTH-1:0] act;
     reg w;
     reg [4:0] exp_set;
@@ -31,7 +31,7 @@ module fp_int_mac_tb;
         .rst(rst),
         .valid(valid),
         .precision(precision),
-        .set(set),
+        // .set(set),
         .act(act),
         .w(w),
         .exp_set(exp_set),
@@ -69,7 +69,7 @@ module fp_int_mac_tb;
         rst = 1;
         valid = 0;
         precision = 4;
-        set = 0;
+        // set = 0;
         act = 16'b0100010101101001; // Example FP16 value
         w = 0;
         exp_set = 5'b10000; // Example exponent min
@@ -83,8 +83,8 @@ module fp_int_mac_tb;
         #10 rst = 0;
         #10 rst = 1;
 
-        #10 set = 1;
-        #10 set = 0;
+        // #10 set = 1;
+        // #10 set = 0;
 
         // Start the first MAC operation
         #15 valid = 1;

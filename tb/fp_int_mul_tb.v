@@ -10,7 +10,7 @@ module fp_int_mul_tb;
     reg [ACT_WIDTH-1:0] act;
     reg w;
     reg valid;
-    reg set;
+    // reg set;
     reg [3:0] precision;
     
     wire sign_out;
@@ -30,7 +30,7 @@ module fp_int_mul_tb;
         .act(act),
         .w(w),
         .valid(valid),
-        .set(set),
+        // .set(set),
         .precision(precision),
         .sign_out(sign_out),
         .exp_out(exp_out),
@@ -76,7 +76,7 @@ module fp_int_mul_tb;
         act = 16'h1234; // Example fixed activation value
         w = 0;
         valid = 0;
-        set = 0;
+        // set = 0;
         precision = 4;
 
         expected_sign = 0;
@@ -89,8 +89,8 @@ module fp_int_mul_tb;
         #10 rst = 1;
 
         // Set precision (enable set for one cycle)
-        #10 set = 1;
-        #10 set = 0;
+        // #10 set = 1;
+        // #10 set = 0;
         
         // Start simulation
         #10 valid = 1;
