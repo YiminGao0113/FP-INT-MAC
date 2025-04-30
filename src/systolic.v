@@ -65,11 +65,12 @@ module systolic #(
                     ._valid(pe_valid[i][j]),
                     .exp_set(exp_set),
                     .fixed_point_acc(fixed_point_out_temp),
-                    .exp_out(pe_exp_out[i*N+j]),
+                    .exp_out(exp_out[i*N+j]),
                     .fixed_point_out(fixed_point_out_temp),
                     .SA_done(pe_done[i*N+j])
                 );
 
+                assign acc_out[i*N + j] = fixed_point_out_temp;
                 if (i < N - 1) begin
                     fifo fifo_inst (
                         .clk(clk),
@@ -137,12 +138,12 @@ module systolic #(
     // end
 
     // Output assignments
-    genvar k;
-    generate
-        for (k = 0; k < N*N; k = k + 1) begin : output_assign
-            assign exp_out[k] = pe_exp_out[k];
-            assign acc_out[k] = pe_acc_out[k];
-        end
-    endgenerate
+    // genvar k;
+    // generate
+    //     for (k = 0; k < N*N; k = k + 1) begin : output_assign
+    //         assign exp_out[k] = pe_exp_out[k];
+    //         assign acc_out[k] = pe_acc_out[k];
+    //     end
+    // endgenerate
 
 endmodule

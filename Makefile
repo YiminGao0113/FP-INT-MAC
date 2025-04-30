@@ -12,24 +12,32 @@ TB_DIR := tb
 all: fp_int_mac
 
 # Rule to compile fp_int_mac with dependencies when running `make all`
-fp_int_mac:
+systolic:
 	@echo "Processing fp_int_mac..."
+	@mkdir -p $(BUILD_DIR)
+	iverilog -g2012 -o $(BUILD_DIR)/systolic_test_dsn $(TB_DIR)/systolic_tb.v $(SRC_DIR)/systolic.v $(SRC_DIR)/fifo.v $(SRC_DIR)/fp_int_mac.v $(SRC_DIR)/fp_int_mul.v $(SRC_DIR)/fp_int_acc.v
+	vvp $(BUILD_DIR)/systolic_test_dsn 
+# && gtkwave $(BUILD_DIR)/fp_int_mac.vcd
+
+# Rule to compile fp_int_mac with dependencies when running `make all`
+fp_int_mac:
+	@echo "Processing systolic..."
 	@mkdir -p $(BUILD_DIR)
 	iverilog -o $(BUILD_DIR)/fp_int_mac_dsn $(TB_DIR)/fp_int_mac_tb.v $(SRC_DIR)/fp_int_mac.v $(SRC_DIR)/fp_int_mul.v $(SRC_DIR)/fp_int_acc.v
 	vvp $(BUILD_DIR)/fp_int_mac_dsn 
 # && gtkwave $(BUILD_DIR)/fp_int_mac.vcd
 
 # Prevent `make all` from triggering the generic rule
-ifeq ($(MAKECMDGOALS),all)
-else
-# Rule to compile and run simulation for other individual modules
-$(MAKECMDGOALS):
-	@echo "Processing $@..."
-	@mkdir -p $(BUILD_DIR)
-	iverilog -o $(BUILD_DIR)/$@_dsn $(TB_DIR)/$@_tb.v $(SRC_DIR)/$@.v
-	vvp $(BUILD_DIR)/$@_dsn 
-# && gtkwave $(BUILD_DIR)/$@.vcd
-endif
+# ifeq ($(MAKECMDGOALS),all)
+# else
+# # Rule to compile and run simulation for other individual modules
+# $(MAKECMDGOALS):
+# 	@echo "Processing $@..."
+# 	@mkdir -p $(BUILD_DIR)
+# 	iverilog -o $(BUILD_DIR)/$@_dsn $(TB_DIR)/$@_tb.v $(SRC_DIR)/$@.v
+# 	vvp $(BUILD_DIR)/$@_dsn 
+# # && gtkwave $(BUILD_DIR)/$@.vcd
+# endif
 
 # Clean rule
 clean:

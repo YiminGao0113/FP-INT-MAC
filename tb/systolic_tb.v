@@ -15,6 +15,18 @@ module systolic_tb;
     wire [4:0] exp_out [N*N-1:0];
     wire [ACC_WIDTH-1:0] acc_out [N*N-1:0];
 
+    // Expected outputs for each PE
+    reg [ACC_WIDTH-1:0] expected_out [0:N*N-1];
+
+    initial begin
+        expected_out[0] = 32'hFFFF9000;  // PE[0][0]
+        expected_out[1] = 32'hFFFF9000;  // PE[0][1]
+        expected_out[2] = 32'hFFFFAC00;  // PE[1][0]
+        expected_out[3] = 32'hFFFFAC00;  // PE[1][1]
+    end
+
+
+
     // Instantiate DUT
     systolic #(
         .ACT_WIDTH(ACT_WIDTH),
@@ -39,7 +51,7 @@ module systolic_tb;
     integer i;
 
     initial begin
-        $dumpfile("tb_systolic.vcd");
+        $dumpfile("build/systolic.vcd");
         $dumpvars(0, systolic_tb);
 
         clk = 1;
@@ -74,16 +86,19 @@ module systolic_tb;
         active = 0;
         #100 
 
-
-        #500
-        // Wait for done
-        // wait (done);
-        // $display("Computation complete.");
-        // for (i = 0; i < N*N; i = i + 1)
-        //     $display("acc_out[%0d] = %d", i, acc_out[i]);
-
         $finish;
     end
+
+always @(posedge done) begin
+    $display("==== [DONE asserted] Checking Outputs ====");
+    for (i = 0; i < N*N; i = i + 1) begin
+        if (acc_out[i] !== expected_out[i])
+            $display("Mismatch at PE[%0d][%0d]: got %h, expected %h", i/N, i%N, acc_out[i], expected_out[i]);
+        else
+            $display("PE[%0d][%0d] correct: %h", i/N, i%N, acc_out[i]);
+    end
+    $display("==========================================");
+end
 
 endmodule
 // pe [0, 0] - 11111111111111111001000000000000 (FFFF9000)
