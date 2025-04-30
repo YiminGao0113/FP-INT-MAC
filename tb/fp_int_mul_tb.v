@@ -97,8 +97,9 @@ module fp_int_mul_tb;
         #10 w = ~w;
         #10 w = ~w;
         #10 w = ~w;
-        #5 act = 16'hf234;
+        #5 
         #5 w = ~w;
+        act = 16'hf234;
         expected_sign = 1;
         expected_exp = 5'b11100;
         // Change w each cycle

@@ -12,7 +12,7 @@ module fp_int_mul #(
     input                       valid,
     input [3:0]                 precision,
     output reg                  sign_out,
-    output reg [4:0]            exp_out,
+    output [4:0]                exp_out,
     output [13:0]               mantissa_out,
     output reg                  start_acc,
     output                      _valid,
@@ -27,6 +27,7 @@ wire [9:0]                act_mantissa;
 wire [10:0]               fixed_mantissa;
 assign {act_sign, act_exponent, act_mantissa} = act_temp;
 assign fixed_mantissa = {1'b1, act_mantissa};
+assign exp_out = act_exponent;
 
 // reg [3:0]             _precision;
 
@@ -127,10 +128,10 @@ always @(posedge clk or negedge rst)
     if (!rst) begin
         start_acc <= 0;
         sign_out <= 0;
-        exp_out <= 0;
+        // exp_out <= 0;
     end
     else if (count == 0) begin
-        exp_out <= act_exponent;
+        // exp_out <= act_exponent;
         sign_out <= w^act[ACT_WIDTH-1];
         start_acc <= 0;
     end
