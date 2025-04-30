@@ -14,6 +14,7 @@ module fp_int_mac #(
     output [4:0]                exp_out,
     output [ACC_WIDTH-1:0]      fixed_point_out,
     output                      done,
+    output                      SA_done,
     output                      _valid,
     output [ACT_WIDTH-1:0]      _act,
     output                      _w
@@ -59,5 +60,12 @@ fp_int_acc acc_unit (
     .fixed_point_out(fixed_point_out),
     .done(done)
 );
+
+reg done_tmp;
+always @(posedge clk or negedge rst)
+    if (!rst) done_tmp <= 0;
+    else done_tmp <= done;
+
+assign SA_done = !valid && (done && !done_tmp);
 
 endmodule

@@ -10,7 +10,7 @@ module systolic #(
     input [ACT_WIDTH-1:0]   act_in [N-1:0],
     input                  w_in [N-1:0],
     input [4:0]             exp_set,
-    output reg              done,
+    output                  done,
     output [4:0]            exp_out [N*N-1:0],
     output [ACC_WIDTH-1:0]  acc_out [N*N-1:0]
 );
@@ -22,7 +22,7 @@ module systolic #(
     wire [N*N-1:0]       pe_done;
     wire [4:0]           pe_exp_out [N*N-1:0];
     wire [ACC_WIDTH-1:0] pe_acc_out [N*N-1:0];
-    reg  [ACC_WIDTH-1:0] pe_acc_reg [N*N-1:0];
+    // reg  [ACC_WIDTH-1:0] pe_acc_reg [N*N-1:0];
 
     // FIFO connections between vertically adjacent PEs (for weight and valid)
     wire fifo_din [(N-1)*N-1:0];
@@ -37,13 +37,18 @@ module systolic #(
             for (j = 0; j < N; j = j + 1) begin : col
                 wire local_valid;
                 reg local_valid_reg;
+                reg fifo_empty_reg;
                 wire fifo_empty;
                 wire _w_input;
+                wire [ACC_WIDTH-1:0] fixed_point_out_temp;
                 assign local_valid = (i == 0 && j == 0) ? active :
                                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
                 // assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
 
-                always @(posedge clk) local_valid_reg <= local_valid;
+                always @(posedge clk) begin
+                    fifo_empty_reg <= fifo_empty;
+                    local_valid_reg <= local_valid;
+                end
 
                 fp_int_mac #(
                     .ACT_WIDTH(ACT_WIDTH),
@@ -59,10 +64,10 @@ module systolic #(
                     ._w(_w_input),
                     ._valid(pe_valid[i][j]),
                     .exp_set(exp_set),
-                    .fixed_point_acc(pe_acc_reg[i*N+j]),
+                    .fixed_point_acc(fixed_point_out_temp),
                     .exp_out(pe_exp_out[i*N+j]),
-                    .fixed_point_out(pe_acc_out[i*N+j]),
-                    .done(pe_done[i*N+j])
+                    .fixed_point_out(fixed_point_out_temp),
+                    .SA_done(pe_done[i*N+j])
                 );
 
                 if (i < N - 1) begin
@@ -82,7 +87,7 @@ module systolic #(
 
                     assign fifo_wr_en[i*N + j] = local_valid;
                     assign fifo_rd_en[i*N + j] = !fifo_empty;
-                    assign fifo_active[i*N + j] = !fifo_empty;
+                    assign fifo_active[i*N + j] = !fifo_empty_reg;
                 end
             end
         end
@@ -109,26 +114,27 @@ module systolic #(
     // endgenerate
 
     // Control logic
-    reg done_tmp;
+    // reg done_tmp;
 
-    always @(posedge clk or negedge rst) begin
-        if (!rst) begin
-            done   <= 0;
-            done_tmp <= 0;
-        end else begin
-            done_tmp <= pe_valid[N-1][N-1];
-            done <= !pe_valid[N-1][N-1] && done_tmp;
-        end
-    end
+    // always @(posedge clk or negedge rst) begin
+    //     if (!rst) begin
+    //         done   <= 0;
+    //         done_tmp <= 0;
+    //     end else begin
+    //         done_tmp <= pe_valid[N-1][N-1];
+    //         done <= !pe_valid[N-1][N-1] && done_tmp;
+    //     end
+    // end
+    assign done = pe_done[N*N-1];
 
     // Accumulator register update
-    always @(posedge clk) begin
-        if (active) begin
-            for (integer idx = 0; idx < N*N; idx = idx + 1) begin
-                pe_acc_reg[idx] <= pe_acc_out[idx];
-            end
-        end
-    end
+    // always @(posedge clk) begin
+    //     if (active) begin
+    //         for (integer idx = 0; idx < N*N; idx = idx + 1) begin
+    //             pe_acc_reg[idx] <= pe_acc_out[idx];
+    //         end
+    //     end
+    // end
 
     // Output assignments
     genvar k;
