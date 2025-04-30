@@ -53,6 +53,7 @@ module systolic_tb;
 
         // Feed first row of A and column of B
         act_in[0] = 16'h3C00;  // 1.0
+        act_in[1] = 16'h4000;  // 2.0
         w_in[0]   = 1'b1;
         w_in[1]   = 1'b0;
         #5
@@ -60,7 +61,6 @@ module systolic_tb;
 
         #40
         act_in[0] = 16'h4200;  // 3.0
-        act_in[1] = 16'h4000;  // 2.0
         w_in[0]   = 1'b1;
         w_in[1]   = 1'b1;
 
@@ -71,7 +71,8 @@ module systolic_tb;
         w_in[1]   = 1'b1;
         
 
-        #100 active = 0;
+        active = 0;
+        #100 
 
 
         #500

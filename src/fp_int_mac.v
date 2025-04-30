@@ -48,6 +48,7 @@ fp_int_mul #(
 fp_int_acc acc_unit (
     .clk(clk),
     .rst(rst),
+    // .valid(valid),
     .start(start_acc),
     .sign_in(sign_out),
     .exp_set(exp_set),

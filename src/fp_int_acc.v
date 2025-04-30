@@ -1,6 +1,7 @@
 module fp_int_acc (
     input          clk,
     input          rst,
+    // input          valid,
     input          start,
     input          sign_in,
     input  [4:0]   exp_set,
@@ -56,7 +57,7 @@ always @(posedge clk or negedge rst) begin
         exp_reg <= exp_set;
     end
     else begin
-        fixed_point_in_shifted <= fixed_point_in;
+        fixed_point_in_shifted <= fixed_point_in_shifted;
     end
 end
 

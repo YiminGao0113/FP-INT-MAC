@@ -37,6 +37,7 @@ module systolic #(
             for (j = 0; j < N; j = j + 1) begin : col
                 wire local_valid;
                 reg local_valid_reg;
+                wire fifo_empty;
                 wire _w_input;
                 assign local_valid = (i == 0 && j == 0) ? active :
                                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
@@ -74,12 +75,14 @@ module systolic #(
                         .precision(precision),
                         .dout(pe_w[i+1][j]),
                         .full(),
-                        .empty(),
-                        .active(fifo_active[i*N + j])
+                        .empty(fifo_empty)
+                        // ,
+                        // .active(fifo_active[i*N + j])
                     );
 
                     assign fifo_wr_en[i*N + j] = local_valid;
-                    assign fifo_rd_en[i*N + j] = pe_valid[i][j];
+                    assign fifo_rd_en[i*N + j] = !fifo_empty;
+                    assign fifo_active[i*N + j] = !fifo_empty;
                 end
             end
         end
