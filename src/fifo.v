@@ -21,8 +21,8 @@ module fifo (
 
     integer i;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
             wr_ptr <= 0;
             rd_ptr <= 0;
             count  <= 0;

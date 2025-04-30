@@ -36,10 +36,13 @@ module systolic #(
         for (i = 0; i < N; i = i + 1) begin : row
             for (j = 0; j < N; j = j + 1) begin : col
                 wire local_valid;
+                reg local_valid_reg;
                 wire _w_input;
                 assign local_valid = (i == 0 && j == 0) ? active :
                                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
-                assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
+                // assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
+
+                always @(posedge clk) local_valid_reg <= local_valid;
 
                 fp_int_mac #(
                     .ACT_WIDTH(ACT_WIDTH),
@@ -67,7 +70,7 @@ module systolic #(
                         .rst(rst),
                         .wr_en(fifo_wr_en[i*N + j]),
                         .rd_en(fifo_rd_en[i*N + j]),
-                        .din(fifo_din[i*N + j]),
+                        .din(pe_w[i][j]),
                         .precision(precision),
                         .dout(pe_w[i+1][j]),
                         .full(),
@@ -75,8 +78,8 @@ module systolic #(
                         .active(fifo_active[i*N + j])
                     );
 
-                    assign fifo_wr_en[i*N + j] = pe_valid[i][j];
-                    assign fifo_rd_en[i*N + j] = 1'b1;
+                    assign fifo_wr_en[i*N + j] = local_valid;
+                    assign fifo_rd_en[i*N + j] = pe_valid[i][j];
                 end
             end
         end
@@ -93,29 +96,25 @@ module systolic #(
     endgenerate
 
     // Unused boundary outputs
-    generate
-        for (i = 0; i <= N; i = i + 1) begin
-            assign pe_act[i][N] = '0;
-        end
-        for (j = 0; j <= N; j = j + 1) begin
-            assign pe_w[N][j] = '0;
-        end
-    endgenerate
+    // generate
+    //     for (i = 0; i <= N; i = i + 1) begin
+    //         assign pe_act[i][N] = '0;
+    //     end
+    //     for (j = 0; j <= N; j = j + 1) begin
+    //         assign pe_w[N][j] = '0;
+    //     end
+    // endgenerate
 
     // Control logic
+    reg done_tmp;
+
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             done   <= 0;
+            done_tmp <= 0;
         end else begin
-            if (active) begin
-                if (!pe_valid[N-1][N-1]) begin
-                    done <= 1;
-                end else begin
-                    done <= 0;
-                end
-            end else begin
-                done <= 0;
-            end
+            done_tmp <= pe_valid[N-1][N-1];
+            done <= !pe_valid[N-1][N-1] && done_tmp;
         end
     end
 

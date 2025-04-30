@@ -16,7 +16,7 @@ module fp_int_mul #(
     output [13:0]               mantissa_out,
     output reg                  start_acc,
     output                      _valid,
-    output     [ACT_WIDTH-1:0]  _act,
+    output reg [ACT_WIDTH-1:0]  _act,
     output reg                  _w
 );
 
@@ -29,12 +29,6 @@ assign {act_sign, act_exponent, act_mantissa} = act_temp;
 assign fixed_mantissa = {1'b1, act_mantissa};
 assign exp_out = act_exponent;
 
-// reg [3:0]             _precision;
-
-// always @(posedge clk or negedge rst)
-//     if (!rst) _precision <= 0;
-//     else if (set) _precision <= precision;
-
 reg [2:0]             count;
 
 always @(posedge clk or negedge rst) begin
@@ -43,20 +37,24 @@ always @(posedge clk or negedge rst) begin
         // start_acc <= 0;
         act_temp <= 0;
         _w <= 0;
+        _act <= 0;
     end
     else begin
         if (valid) begin
             act_temp <= act;
             _w <= w;
-            if (count<precision-1) count <= count + 1;
+            if (count<precision-1) begin
+                count <= count + 1;
+                _act <= _act;
+            end
             else begin
                 count <= 0;
-                // start_acc <= 1;
+                _act <= act;
             end
         end
         else begin
-            // _act <= _act;
             count <= 0;
+            _act <= _act;
         end
     end
 end
@@ -72,23 +70,6 @@ always @(posedge clk or negedge rst) begin
 end
 
 assign _valid = shift_reg[3];
-
-
-// Delay act signal by 4 cycles
-reg [ACT_WIDTH-1:0] act_shift [0:3];
-integer i;
-always @(posedge clk or negedge rst) begin
-    if (!rst) begin
-        for (i = 0; i < 4; i = i + 1)
-            act_shift[i] <= 0;
-    end else begin
-        act_shift[0] <= act;
-        act_shift[1] <= act_shift[0];
-        act_shift[2] <= act_shift[1];
-        act_shift[3] <= act_shift[2];
-    end
-end
-assign _act = act_shift[3];
 
 
 // The accumulator in the Multiplier unit
