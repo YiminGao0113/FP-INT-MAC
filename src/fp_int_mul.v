@@ -5,27 +5,27 @@ module fp_int_mul #(
     // parameter W_WIDTH  = 4,
     parameter ACC_WIDTH = 32
 )(
-    input                  clk,
-    input                  rst,
-    input [ACT_WIDTH-1:0]  act,
-    input                  w,
-    input                  valid,
-    // input                  set, 
-    input [3:0]            precision,
-    // output [ACC_WIDTH-1:0] result,
-    output reg             sign_out,
-    output reg [4:0]       exp_out,
-    output [13:0]          mantissa_out,
-    output reg             start_acc    
+    input                       clk,
+    input                       rst,
+    input [ACT_WIDTH-1:0]       act,
+    input                       w,
+    input                       valid,
+    input [3:0]                 precision,
+    output reg                  sign_out,
+    output reg [4:0]            exp_out,
+    output [13:0]               mantissa_out,
+    output reg                  start_acc,
+    output                      _valid,
+    output     [ACT_WIDTH-1:0]  _act,
+    output reg                  _w
 );
 
-// reg [ACT_WIDTH-1:0]       _act;
-// reg                       _w;
+reg [ACT_WIDTH-1:0]       act_temp;
 wire                      act_sign;
 wire [4:0]                act_exponent;
 wire [9:0]                act_mantissa;
 wire [10:0]               fixed_mantissa;
-assign {act_sign, act_exponent, act_mantissa} = act;
+assign {act_sign, act_exponent, act_mantissa} = act_temp;
 assign fixed_mantissa = {1'b1, act_mantissa};
 
 // reg [3:0]             _precision;
@@ -40,13 +40,13 @@ always @(posedge clk or negedge rst) begin
     if (!rst) begin
         count <= 0;
         // start_acc <= 0;
-        // _act <= 0;
-        // _w <= 0;
+        act_temp <= 0;
+        _w <= 0;
     end
     else begin
         if (valid) begin
-            // _act <= act;
-            // _w <= w;
+            act_temp <= act;
+            _w <= w;
             if (count<precision-1) count <= count + 1;
             else begin
                 count <= 0;
@@ -59,6 +59,36 @@ always @(posedge clk or negedge rst) begin
         end
     end
 end
+
+
+reg [3:0] shift_reg;
+
+always @(posedge clk or negedge rst) begin
+    if (!rst)
+        shift_reg <= 4'b0;
+    else
+        shift_reg <= {shift_reg[2:0], valid};
+end
+
+assign _valid = shift_reg[3];
+
+
+// Delay act signal by 4 cycles
+reg [ACT_WIDTH-1:0] act_shift [0:3];
+integer i;
+always @(posedge clk or negedge rst) begin
+    if (!rst) begin
+        for (i = 0; i < 4; i = i + 1)
+            act_shift[i] <= 0;
+    end else begin
+        act_shift[0] <= act;
+        act_shift[1] <= act_shift[0];
+        act_shift[2] <= act_shift[1];
+        act_shift[3] <= act_shift[2];
+    end
+end
+assign _act = act_shift[3];
+
 
 // The accumulator in the Multiplier unit
 reg  [13:0] mantissa_reg;

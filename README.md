@@ -51,6 +51,10 @@ You can install these tools as follows:
    ```bash
    make clean
    ```
+## Test the systolic
+   ```bash
+   iverilog -g2012 -o systolic_test tb/systolic_tb.v   src/systolic.v src/fifo.v src/fp_int_mac.v src/fp_int_mul.v src/fp_int_acc.v
+   ```
 
 ## Block diagram of the FP16-VariableInt unit
 ![image](https://github.com/user-attachments/assets/be9a95a6-bc4c-4e2b-828c-b2c4beb3a58b)
