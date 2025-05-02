@@ -19,6 +19,21 @@ systolic:
 	vvp $(BUILD_DIR)/systolic_test_dsn 
 # && gtkwave $(BUILD_DIR)/fp_int_mac.vcd
 
+mm:
+	@echo "Running mm_tb with systolic..."
+	@mkdir -p $(BUILD_DIR)
+	iverilog -g2012 -o $(BUILD_DIR)/mm_tb_dsn \
+		$(TB_DIR)/mm_tb.v \
+		$(SRC_DIR)/systolic.v \
+		$(SRC_DIR)/act_fifo.v \
+		$(SRC_DIR)/fifo.v \
+		$(SRC_DIR)/fp_int_mac.v \
+		$(SRC_DIR)/fp_int_mul.v \
+		$(SRC_DIR)/fp_int_acc.v
+	vvp $(BUILD_DIR)/mm_tb_dsn
+
+
+
 # Rule to compile fp_int_mac with dependencies when running `make all`
 fp_int_mac:
 	@echo "Processing systolic..."

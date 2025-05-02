@@ -61,14 +61,14 @@ module systolic_tb;
         exp_set = 5'd15;
 
         #20 rst = 1;
-        #5 
+        #10
 
         // Feed first row of A and column of B
         act_in[0] = 16'h3C00;  // 1.0
         act_in[1] = 16'h4000;  // 2.0
         w_in[0]   = 1'b1;
         w_in[1]   = 1'b1;
-        #5
+        // #5
         active = 1;
 
         #40

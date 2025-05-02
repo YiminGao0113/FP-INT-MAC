@@ -1,3 +1,4 @@
+
 module systolic #(
     parameter ACT_WIDTH = 16,
     parameter ACC_WIDTH = 32,
@@ -12,7 +13,9 @@ module systolic #(
     input [4:0]             exp_set,
     output                  done,
     output [4:0]            exp_out [N*N-1:0],
-    output [ACC_WIDTH-1:0]  acc_out [N*N-1:0]
+    output [ACC_WIDTH-1:0]  acc_out [N*N-1:0],
+    output [N-1:0]          active_row,
+    output [N-1:0]          active_column
 );
 
     // Internal signals
@@ -30,6 +33,13 @@ module systolic #(
     wire fifo_wr_en [(N-1)*N-1:0];
     wire fifo_rd_en [(N-1)*N-1:0];
     wire fifo_active [(N-1)*N-1:0];
+    reg active_reg;
+    
+    always @(posedge clk or negedge rst) begin
+        if (!rst) active_reg <= 0;
+        else active_reg <= active;
+    end
+
 
     genvar i, j;
     generate
@@ -41,9 +51,13 @@ module systolic #(
                 wire fifo_empty;
                 wire _w_input;
                 wire [ACC_WIDTH-1:0] fixed_point_out_temp;
-                assign local_valid = (i == 0 && j == 0) ? active :
+                assign local_valid = (i == 0 && j == 0) ? active_reg :
                                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
                 // assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
+
+                // assign active_row[i] = (i == 0)? active : fifo_active[(i-1)*N];
+                // assign active_column[j] = (i == 0)? active : pe_valid[0][j-1]
+                // assign active_column[j] = (i == 0)? local_valid : active_row[i];
 
                 always @(posedge clk) begin
                     fifo_empty_reg <= fifo_empty;
@@ -72,13 +86,16 @@ module systolic #(
 
                 assign acc_out[i*N + j] = fixed_point_out_temp;
                 if (i < N - 1) begin
-                    fifo fifo_inst (
+                    fifo  #(
+                        .WIDTH(1),
+                        .DEPTH(16)
+                    )fifo_inst(
                         .clk(clk),
                         .rst(rst),
                         .wr_en(fifo_wr_en[i*N + j]),
                         .rd_en(fifo_rd_en[i*N + j]),
                         .din(pe_w[i][j]),
-                        .precision(precision),
+                        // .precision(precision),
                         .dout(pe_w[i+1][j]),
                         .full(),
                         .empty(fifo_empty)
@@ -93,6 +110,19 @@ module systolic #(
             end
         end
     endgenerate
+
+    genvar rr, cc;
+    generate
+        for (rr = 0; rr < N; rr = rr + 1) begin : gen_active_row
+            assign active_row[rr] = (rr == 0) ? active_reg : fifo_active[(rr - 1) * N];
+        end
+        for (cc = 0; cc < N; cc = cc + 1) begin : gen_active_column
+            assign active_column[cc] = (cc == 0) ? active_reg : pe_valid[0][cc - 1];
+        end
+    endgenerate
+
+
+
 
     // Connect the boundary inputs
     generate
@@ -127,23 +157,5 @@ module systolic #(
     //     end
     // end
     assign done = pe_done[N*N-1];
-
-    // Accumulator register update
-    // always @(posedge clk) begin
-    //     if (active) begin
-    //         for (integer idx = 0; idx < N*N; idx = idx + 1) begin
-    //             pe_acc_reg[idx] <= pe_acc_out[idx];
-    //         end
-    //     end
-    // end
-
-    // Output assignments
-    // genvar k;
-    // generate
-    //     for (k = 0; k < N*N; k = k + 1) begin : output_assign
-    //         assign exp_out[k] = pe_exp_out[k];
-    //         assign acc_out[k] = pe_acc_out[k];
-    //     end
-    // endgenerate
 
 endmodule

@@ -21,6 +21,7 @@ module fp_int_mul #(
 );
 
 reg [ACT_WIDTH-1:0]       act_temp;
+reg                       w_sign;
 wire                      act_sign;
 wire [4:0]                act_exponent;
 wire [9:0]                act_mantissa;
@@ -49,7 +50,7 @@ always @(posedge clk or negedge rst) begin
             end
             else begin
                 count <= 0;
-                _act <= act;
+                _act <= act_temp;
             end
         end
         else begin
@@ -60,16 +61,28 @@ always @(posedge clk or negedge rst) begin
 end
 
 
-reg [3:0] shift_reg;
+// reg [3:0] shift_reg;
+
+// always @(posedge clk or negedge rst) begin
+//     if (!rst)
+//         shift_reg <= 4'b0;
+//     else
+//         shift_reg <= {shift_reg[2:0], valid};
+// end
+
+// assign _valid = shift_reg[3];
+
+parameter MAX_PRECISION = 8;  // maximum supported precision
+reg [MAX_PRECISION:0] shift_reg;
 
 always @(posedge clk or negedge rst) begin
     if (!rst)
-        shift_reg <= 4'b0;
+        shift_reg <= 0;
     else
-        shift_reg <= {shift_reg[2:0], valid};
+        shift_reg <= {shift_reg[MAX_PRECISION-1:0], valid};
 end
 
-assign _valid = shift_reg[3];
+assign _valid = shift_reg[precision];
 
 
 // The accumulator in the Multiplier unit
@@ -113,8 +126,11 @@ always @(posedge clk or negedge rst)
     end
     else if (count == 0) begin
         // exp_out <= act_exponent;
-        sign_out <= w^act[ACT_WIDTH-1];
+        // sign_out <= w^act[ACT_WIDTH-1];
         start_acc <= 0;
+    end
+    else if (count == 1) begin
+        sign_out <= w^act[ACT_WIDTH-1];
     end
     else if (count==precision-1) start_acc <= 1;
     else start_acc <= 0;
