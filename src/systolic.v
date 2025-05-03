@@ -112,7 +112,7 @@ module systolic #(
                         // .active(fifo_active[i*N + j])
                     );
 
-                    assign fifo_wr_en[i*N + j] = local_valid;
+                    assign fifo_wr_en[i*N + j] = local_valid_reg;
                     assign fifo_rd_en[i*N + j] = !fifo_empty;
                     assign fifo_active[i*N + j] = !fifo_empty_reg;
                 end

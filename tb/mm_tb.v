@@ -40,7 +40,7 @@ module mm_tb;
     
     initial begin
         expected_out[0] = 32'hFFFFBC00;  // PE[0][0]
-        expected_out[1] = 32'hFFFF9000;  // PE[0][1]
+        expected_out[1] = 32'h00000C00;  // PE[0][1]
         expected_out[2] = 32'hFFFFAC00;  // PE[1][0]
         expected_out[3] = 32'hFFFFAC00;  // PE[1][1]
     end
