@@ -84,7 +84,7 @@ module systolic_tb;
         
 
         active = 0;
-        #100 
+        #200
 
         $finish;
     end

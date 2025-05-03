@@ -20,7 +20,7 @@ module fp_int_mul #(
     output reg                  _w
 );
 
-reg [ACT_WIDTH-1:0]       act_temp;
+reg [ACT_WIDTH-1:0]       act_temp, __act;
 reg                       w_sign;
 wire                      act_sign;
 wire [4:0]                act_exponent;
@@ -38,24 +38,26 @@ always @(posedge clk or negedge rst) begin
         // start_acc <= 0;
         act_temp <= 0;
         _w <= 0;
+        __act <= 0;
         _act <= 0;
     end
     else begin
+        _act <= __act;
         if (valid) begin
             act_temp <= act;
             _w <= w;
             if (count<precision-1) begin
                 count <= count + 1;
-                _act <= _act;
+                __act <= __act;
             end
             else begin
                 count <= 0;
-                _act <= act_temp;
+                __act <= act_temp;
             end
         end
         else begin
             count <= 0;
-            _act <= _act;
+            __act <= __act;
         end
     end
 end
@@ -82,7 +84,7 @@ always @(posedge clk or negedge rst) begin
         shift_reg <= {shift_reg[MAX_PRECISION-1:0], valid};
 end
 
-assign _valid = shift_reg[precision];
+assign _valid = shift_reg[precision] || shift_reg[precision-1];
 
 
 // The accumulator in the Multiplier unit

@@ -45,14 +45,21 @@ module systolic #(
     generate
         for (i = 0; i < N; i = i + 1) begin : row
             for (j = 0; j < N; j = j + 1) begin : col
-                wire local_valid;
+                wire local_valid, local_valid_for_pe;
                 reg local_valid_reg;
                 reg fifo_empty_reg;
                 wire fifo_empty;
                 wire _w_input;
                 wire [ACC_WIDTH-1:0] fixed_point_out_temp;
+                // assign local_valid = (i == 0 && j == 0) ? active_reg :
+                //                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
                 assign local_valid = (i == 0 && j == 0) ? active_reg :
                                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
+
+                // assign local_valid_for_pe =  (i == 0 && j == 0) ? active_reg :
+                //                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : previous_pe_generated_valid;
+                // reg local_valid_reg;
+                // wire previous_pe_generated_valid;
                 // assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
 
                 // assign active_row[i] = (i == 0)? active : fifo_active[(i-1)*N];
@@ -62,7 +69,9 @@ module systolic #(
                 always @(posedge clk) begin
                     fifo_empty_reg <= fifo_empty;
                     local_valid_reg <= local_valid;
+                    // previous_pe_generated_valid_reg <= pe_valid[i][j-1];
                 end
+                // assign previous_pe_generated_valid = previous_pe_generated_valid_reg & pe_valid[i][j-1];
 
                 fp_int_mac #(
                     .ACT_WIDTH(ACT_WIDTH),
@@ -70,7 +79,7 @@ module systolic #(
                 ) pe_inst (
                     .clk(clk),
                     .rst(rst),
-                    .valid(local_valid),
+                    .valid((j==0)?local_valid:local_valid&local_valid_reg),
                     .precision(precision),
                     .act(pe_act[i][j]),
                     .w(pe_w[i][j]),
