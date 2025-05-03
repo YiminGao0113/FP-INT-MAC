@@ -39,10 +39,10 @@ module mm_tb;
     reg [ACC_WIDTH-1:0] expected_out [0:N*N-1];
     
     initial begin
-        expected_out[0] = 32'hFFFFBC00;  // PE[0][0]
-        expected_out[1] = 32'h00000C00;  // PE[0][1]
-        expected_out[2] = 32'hFFFFAC00;  // PE[1][0]
-        expected_out[3] = 32'hFFFFAC00;  // PE[1][1]
+        expected_out[0] = 32'hFFFFD800;  // PE[0][0]
+        expected_out[1] = 32'hFFFFF400;  // PE[0][1]
+        expected_out[2] = 32'hFFFFD800;  // PE[1][0]    
+        expected_out[3] = 32'hFFFFF000;  // PE[1][1]
     end
 
 

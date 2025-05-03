@@ -70,6 +70,7 @@ module systolic_tb;
         w_in[1]   = 1'b1;
         // #5
         active = 1;
+        #5
 
         #40
         act_in[0] = 16'h4200;  // 3.0

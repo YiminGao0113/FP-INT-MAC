@@ -128,12 +128,12 @@ always @(posedge clk or negedge rst)
     end
     else if (count == 0) begin
         // exp_out <= act_exponent;
-        // sign_out <= w^act[ACT_WIDTH-1];
+        sign_out <= w^act[ACT_WIDTH-1];
         start_acc <= 0;
     end
-    else if (count == 1) begin
-        sign_out <= w^act[ACT_WIDTH-1];
-    end
+    // else if (count == 1) begin
+    //     sign_out <= w^act[ACT_WIDTH-1];
+    // end
     else if (count==precision-1) start_acc <= 1;
     else start_acc <= 0;
 
