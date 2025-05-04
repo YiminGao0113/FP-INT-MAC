@@ -24,6 +24,7 @@ mm:
 	@mkdir -p $(BUILD_DIR)
 	iverilog -g2012 -o $(BUILD_DIR)/mm_tb_dsn \
 		$(TB_DIR)/mm_tb.v \
+		$(SRC_DIR)/mm.v \
 		$(SRC_DIR)/systolic.v \
 		$(SRC_DIR)/act_fifo.v \
 		$(SRC_DIR)/fifo.v \
