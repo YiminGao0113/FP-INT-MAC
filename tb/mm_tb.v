@@ -6,6 +6,8 @@ module mm_tb;
     parameter ACC_WIDTH = 32;
     parameter N = 2;
     parameter K = 2;
+    parameter P = 4;
+    parameter EXP = 5'd15;
     parameter FIFO_DEPTH = 16;
 
     reg clk, rst, active;
@@ -67,8 +69,8 @@ module mm_tb;
         clk = 0;
         rst = 1;
         active = 0;
-        precision = 4;
-        exp_set = 5'd15;
+        precision = P;
+        exp_set = EXP;
 
         $readmemh("tb/act.mem", act_mem);
         $readmemh("tb/w.mem", w_mem);

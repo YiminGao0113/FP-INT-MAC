@@ -5,6 +5,13 @@ BUILD_DIR := build
 SRC_DIR := src
 TB_DIR := tb
 
+# Default parameter values (override via environment if needed)
+N ?= 2
+K ?= 2
+P ?= 4
+EXP_SET ?= 15
+
+
 # Phony targets
 .PHONY: all clean fp_int_mac $(MAKECMDGOALS)
 
@@ -22,7 +29,12 @@ systolic:
 mm:
 	@echo "Running mm_tb with systolic..."
 	@mkdir -p $(BUILD_DIR)
-	iverilog -g2012 -o $(BUILD_DIR)/mm_tb_dsn \
+	iverilog -g2012 \
+		-P mm_tb.N=$(N) \
+		-P mm_tb.K=$(K) \
+		-P mm_tb.P=$(P) \
+		-P mm_tb.EXP_SET=$(EXP_SET) \
+	    -o $(BUILD_DIR)/mm_tb_dsn \
 		$(TB_DIR)/mm_tb.v \
 		$(SRC_DIR)/mm.v \
 		$(SRC_DIR)/systolic.v \
