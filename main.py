@@ -50,8 +50,8 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
 
     # Write w.mem in bit-serial order: k, p, r
     with open(w_path, 'w') as f:
-        for k in range(K):
-            for r in range(N):
+        for r in range(N):
+            for k in range(K):
                 for p in range(P):
                     f.write(f"{w[r][k][p]}\n")
 
@@ -62,6 +62,13 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
 
     # Set up accumulators with correct format and overflow mode
     acc = [[0.0 for _ in range(N)] for _ in range(N)]
+    print("Shape of w:", w.shape)
+    print("w[0][0] =", w[0][0])
+    print("w[0][1] =", w[0][1])
+    print("w[0][2] =", w[0][2])
+    print("w[0][3] =", w[0][3])
+
+
 
     print(f"\n✅ Computing expected outputs with EXP_SET = {exp_set} (scale = 2^{exp_set}):")
 
@@ -70,7 +77,7 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
             print(f"\n▶ PE[{i}][{j}]:")
             for k in range(K):
                 # Combine P bits into signed integer (MSB first)
-                bits = w[k][j]
+                bits = w[j][k]
                 bit_str = ''.join(str(b) for b in bits)
                 unsigned = int(bit_str, 2)
 
@@ -92,10 +99,12 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
                 acc_fxp = Fxp(acc[i][j], signed=True, n_word=32, n_frac=10, overflow='wrap')
                 # print(f"      a_val type = {type(a_val)}")
                 # print(f"      mult_val type = {type(mult_val)}")
+                # a_bin = format(struct.unpack('>H', struct.pack('>e', a_val))[0], '016b')
 
 
                 print(f"  [k={k}] bits = {bits} → int = {signed_int:>4}, "
-                    f"act[{i}][{k}] = {a_val:.4f}, mult = {mult_val:.4f}, "
+                    f"act[{i}][{k}] = {a_val:.4f} (hex: {float_to_hex(act[i][k])}), mult = {mult_val:.4f}, "
+                    # f"act[{i}][{k}] = {a_val:.4f}, mult = {mult_val:.4f}, "
                     f"fixed = {fixed_val_fxp()} (bin: {fixed_val_fxp.bin()}, hex: {fixed_val_fxp.hex()}), "
                     f"acc = {acc_fxp()} (bin: {acc_fxp.bin()}, hex: {acc_fxp.hex()})")
     return acc  # <-- add this line at the end
@@ -150,7 +159,7 @@ def single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET):
                       f"Verilog = {verilog_int:08X} ({verilog_float:.4f})")
                 mismatches += 1
             else:
-                print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f})")
+                print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f}) == Verilog = {verilog_int:08X} ({verilog_float:.4f})")
 
     print(f"\n⚠️ {mismatches} mismatches found." if mismatches else "\n✅ All outputs match.")
 
@@ -190,8 +199,8 @@ def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
 
 # Entry point
 if __name__ == "__main__":
-    N = 2
-    K = 2
+    N = 8
+    K = 4
     P = 4
     EXP_SET = 15
     ACT_MAX = 128
@@ -199,5 +208,5 @@ if __name__ == "__main__":
     NUM_TRIALS = 100
 
     # Choose one of the following:
-    # single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET)
-    multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=NUM_TRIALS)
+    single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET)
+    # multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=NUM_TRIALS)

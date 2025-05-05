@@ -113,11 +113,15 @@ module mm_tb;
         end
         active = 0;
 
-        #200;
-        // $display("Systolic completed:");
-        // for (r = 0; r < N*N; r = r + 1) begin
-        //     $display("acc_out[%0d] = %h", r, acc_out[r]);
-        // end
+        // #200;
+
+        // $fclose(outfile);
+        // $finish;
+
+        wait (done);  // Wait for 'done' signal to become high
+
+        // Optionally wait one cycle after 'done' is high
+        #10;
 
         $fclose(outfile);
         $finish;
