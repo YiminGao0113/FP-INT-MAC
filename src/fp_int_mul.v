@@ -21,7 +21,7 @@ module fp_int_mul #(
 );
 
 reg [ACT_WIDTH-1:0]       act_temp, __act;
-reg                       w_sign;
+reg                       sign_w;
 wire                      act_sign;
 wire [4:0]                act_exponent;
 wire [9:0]                act_mantissa;
@@ -106,10 +106,10 @@ always @(*) begin
             shifted_fp = 14'b0;
             // start_acc = 0;
         end
-        3'b001: shifted_fp = sign_out? (w? 14'b0:fixed_mantissa<<2) : (w? fixed_mantissa<<2: 14'b0); // negative : positive
-        3'b010: shifted_fp = sign_out? (w? 14'b0:fixed_mantissa<<1) : (w? fixed_mantissa<<1: 14'b0); // negative : positive
+        3'b001: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<2) : (w? fixed_mantissa<<2: 14'b0); // negative : positive
+        3'b010: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<1) : (w? fixed_mantissa<<1: 14'b0); // negative : positive
         3'b011: begin
-            shifted_fp = sign_out? (w? fixed_mantissa: fixed_mantissa<<1): (w? fixed_mantissa: 14'b0); // negative integer: if LSB = 0 >> fixed_mantissa<<1, if LSB = 1 >> fixed_mantissa
+            shifted_fp = sign_w? (w? fixed_mantissa: fixed_mantissa<<1): (w? fixed_mantissa: 14'b0); // negative integer: if LSB = 0 >> fixed_mantissa<<1, if LSB = 1 >> fixed_mantissa
             // start_acc = 1;
         end
         default: begin
@@ -128,6 +128,7 @@ always @(posedge clk or negedge rst)
     end
     else if (count == 0) begin
         // exp_out <= act_exponent;
+        sign_w <= w;
         sign_out <= w^act[ACT_WIDTH-1];
         start_acc <= 0;
     end
