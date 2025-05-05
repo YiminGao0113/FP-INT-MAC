@@ -194,10 +194,10 @@ if __name__ == "__main__":
     K = 2
     P = 4
     EXP_SET = 15
-    ACT_MAX = 2
-    ACT_MIN = 8
+    ACT_MAX = 128
+    ACT_MIN = 2
     NUM_TRIALS = 100
 
     # Choose one of the following:
-    single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET)
-    # multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=NUM_TRIALS)
+    # single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET)
+    multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=NUM_TRIALS)
