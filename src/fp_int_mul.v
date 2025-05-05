@@ -106,10 +106,10 @@ always @(*) begin
             shifted_fp = 14'b0;
             // start_acc = 0;
         end
-        3'b001: shifted_fp = w? fixed_mantissa<<2: 14'b0;
-        3'b010: shifted_fp = w? fixed_mantissa<<1: 14'b0;
+        3'b001: shifted_fp = sign_out? (w? 14'b0:fixed_mantissa<<2) : (w? fixed_mantissa<<2: 14'b0); // negative : positive
+        3'b010: shifted_fp = sign_out? (w? 14'b0:fixed_mantissa<<1) : (w? fixed_mantissa<<1: 14'b0); // negative : positive
         3'b011: begin
-            shifted_fp = w? fixed_mantissa: 14'b0;
+            shifted_fp = sign_out? (w? fixed_mantissa: fixed_mantissa<<1): (w? fixed_mantissa: 14'b0); // negative integer: if LSB = 0 >> fixed_mantissa<<1, if LSB = 1 >> fixed_mantissa
             // start_acc = 1;
         end
         default: begin

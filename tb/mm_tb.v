@@ -26,15 +26,16 @@ module mm_tb;
 
     reg wr_en_act;
     reg wr_en_w;
+    integer outfile;
 
     // Expected outputs for each PE
     reg [ACC_WIDTH-1:0] expected_out [0:N*N-1];
 
     initial begin
-        expected_out[0] = 32'hFFFFD800;
-        expected_out[1] = 32'hFFFFF400;
-        expected_out[2] = 32'hFFFFD800;
-        expected_out[3] = 32'hFFFFF000;
+        expected_out[0] = 32'hFFFFC800;
+        expected_out[1] = 32'hFFFFAC00;
+        expected_out[2] = 32'hFFFFA800;
+        expected_out[3] = 32'hFFFF9000;
     end
 
     always #5 clk = ~clk;
@@ -65,6 +66,12 @@ module mm_tb;
     initial begin
         $dumpfile("build/mm_tb.vcd");
         $dumpvars(0, mm_tb);
+        
+        outfile = $fopen("build/verilog_output.txt", "w");
+        if (outfile == 0) begin
+            $display("❌ ERROR: Failed to open output file.");
+            $finish;
+        end
 
         clk = 0;
         rst = 1;
@@ -107,24 +114,34 @@ module mm_tb;
         active = 0;
 
         #200;
-        $display("Systolic completed:");
-        for (r = 0; r < N*N; r = r + 1) begin
-            $display("acc_out[%0d] = %h", r, acc_out[r]);
-        end
+        // $display("Systolic completed:");
+        // for (r = 0; r < N*N; r = r + 1) begin
+        //     $display("acc_out[%0d] = %h", r, acc_out[r]);
+        // end
 
+        $fclose(outfile);
         $finish;
     end
 
     always @(posedge done) begin
-        $display("==== [DONE asserted] Checking Outputs ====");
-        for (l = 0; l < N*N; l= l + 1) begin
-            if (acc_out[l] !== expected_out[l])
-                $display("Mismatch at PE[%0d][%0d]: got %h, expected %h", l/N, l%N, acc_out[l], expected_out[l]);
-            else
-                $display("PE[%0d][%0d] correct: %h", l/N, l%N, acc_out[l]);
+        // $display("==== [DONE asserted] Checking Outputs ====");
+        // for (l = 0; l < N*N; l= l + 1) begin
+        //     if (acc_out[l] !== expected_out[l])
+        //         $display("Mismatch at PE[%0d][%0d]: got %h, expected %h", l/N, l%N, acc_out[l], expected_out[l]);
+        //     else
+        //         $display("PE[%0d][%0d] correct: %h", l/N, l%N, acc_out[l]);
+        // end
+        // $display("==========================================");
+        $fdisplay(outfile, "==== [DONE asserted] Checking Outputs ====");
+        for (l = 0; l < N*N; l = l + 1) begin
+            // if (acc_out[l] !== expected_out[l])
+                // $fdisplay(outfile, "Mismatch at PE[%0d][%0d]: got %h, expected %h", l/N, l%N, acc_out[l], expected_out[l]);
+            // else
+            $fdisplay(outfile, "PE[%0d][%0d]: %h", l/N, l%N, acc_out[l]);
         end
-        $display("==========================================");
+        $fdisplay(outfile, "==========================================");
     end
+
 
 endmodule
 

@@ -33,7 +33,7 @@ mm:
 		-P mm_tb.N=$(N) \
 		-P mm_tb.K=$(K) \
 		-P mm_tb.P=$(P) \
-		-P mm_tb.EXP_SET=$(EXP_SET) \
+		-P mm_tb.EXP=$(EXP_SET) \
 	    -o $(BUILD_DIR)/mm_tb_dsn \
 		$(TB_DIR)/mm_tb.v \
 		$(SRC_DIR)/mm.v \
