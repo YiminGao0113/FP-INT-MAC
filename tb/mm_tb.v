@@ -8,7 +8,7 @@ module mm_tb;
     parameter K = 2;
     parameter P = 4;
     parameter EXP = 5'd15;
-    parameter FIFO_DEPTH = 16;
+    parameter FIFO_DEPTH = 32;
 
     reg clk, rst, active;
     reg [3:0] precision;

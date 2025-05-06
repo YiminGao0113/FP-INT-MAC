@@ -4,7 +4,7 @@ module mm #(
     parameter ACC_WIDTH = 32,
     parameter N = 2,
     parameter K = 2,
-    parameter FIFO_DEPTH = 16
+    parameter FIFO_DEPTH = 32
 )(
     input wire clk,
     input wire rst,

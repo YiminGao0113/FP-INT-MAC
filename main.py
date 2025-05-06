@@ -200,7 +200,7 @@ def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
 # Entry point
 if __name__ == "__main__":
     N = 8
-    K = 4
+    K = 8
     P = 4
     EXP_SET = 15
     ACT_MAX = 128
