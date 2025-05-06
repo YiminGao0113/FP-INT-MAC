@@ -34,15 +34,11 @@ You can install these tools as follows:
    git clone https://github.com/YiminGao0113/FP-INT-MAC.git
    cd FP-INT-MAC
    ```
-2. Run the simulation: (e.g. to simulate fp_int_mul unit run make fp_int_mul)
+2. Run the simulation run the python script which generates random weight and activation memory files, run the RTL simulation and verify the results: 
    ```bash
-   make design_name
+   python3 main.py 
    ```
-   To simulate for fp_int_mac run 
-   ```bash
-   make all
-   ```
-3. Expected Results should show that the results passed simulation verification.
+3. Expected Results should show that the systolic array results passed simulation verification.
 4. If you want to observe the generated waveform, run gtkwave:
    ```bash
    gtkwave build/design_name.vcd
@@ -53,7 +49,7 @@ You can install these tools as follows:
    ```
 ## Test the systolic
    ```bash
-   iverilog -g2012 -o systolic_test tb/systolic_tb.v   src/systolic.v src/fifo.v src/fp_int_mac.v src/fp_int_mul.v src/fp_int_acc.v
+   make systolic
    ```
 
 ## Block diagram of the FP16-VariableInt unit
@@ -63,8 +59,7 @@ You can install these tools as follows:
 
 ## To do
 - Finish the Accumulation module for Integer (done✅)
-- Implement and verify the entire MAC operation (done✅)
 - Implement and verify the bit-serial weight stream FP-INT MAC unit (done✅)
-- Implement and verify the MAC unit for Posit4 (done✅)
-- Integrate the FP-INT unit as PE into an existing systolic array project
+- Integrate the FP-INT unit as PE into a systolic array (done✅)
+- Automate the testbench using Python script to generate the random activation and weight inputs, run the testbench, and verify the results (done✅)
 - Integrate synthesis flow into the Repo
