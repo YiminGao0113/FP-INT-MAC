@@ -47,7 +47,7 @@ You can install these tools as follows:
    ```bash
    make clean
    ```
-## Test the systolic
+## Test the systolic array with no weight/act FIFOs
    ```bash
    make systolic
    ```
