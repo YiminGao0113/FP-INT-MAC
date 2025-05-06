@@ -26,7 +26,10 @@ You can install these tools as follows:
   ```bash
   brew install iverilog gtkwave
   ```
-
+## Export a working conda environment
+  ``` bash
+  conda env create --file environment.yml
+  ```
 ## How to Run the Simulation
 
 1. Clone this repository:
