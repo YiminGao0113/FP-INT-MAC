@@ -270,5 +270,5 @@ if __name__ == "__main__":
     TOLERANCE = 0 # 1e-3
 
     # Choose one of the following:
-    # single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, TOLERANCE)
-    multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, NUM_TRIALS, TOLERANCE)
+    single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, TOLERANCE)
+    # multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, NUM_TRIALS, TOLERANCE)
