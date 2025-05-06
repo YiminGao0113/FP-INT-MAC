@@ -62,11 +62,11 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
 
     # Set up accumulators with correct format and overflow mode
     acc = [[0.0 for _ in range(N)] for _ in range(N)]
-    print("Shape of w:", w.shape)
-    print("w[0][0] =", w[0][0])
-    print("w[0][1] =", w[0][1])
-    print("w[0][2] =", w[0][2])
-    print("w[0][3] =", w[0][3])
+    # print("Shape of w:", w.shape)
+    # print("w[0][0] =", w[0][0])
+    # print("w[0][1] =", w[0][1])
+    # print("w[0][2] =", w[0][2])
+    # print("w[0][3] =", w[0][3])
 
 
 
@@ -137,33 +137,94 @@ def read_verilog_output(filepath):
                 outputs[(row, col)] = int(hex_val, 16)
     return outputs
 
-def single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET):
+# def single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET):
+#     acc = generate_mem_files(N, K, P, EXP_SET, ACT_MIN, ACT_MAX)
+#     run_testbench(N, K, P, EXP_SET)
+
+#     verilog_results = read_verilog_output("build/verilog_output.txt")
+
+#     print("\n🧮 Comparing with Python fixed-point simulation:")
+#     mismatches = 0
+#     for i in range(N):
+#         for j in range(N):
+#             py_val = Fxp(acc[i][j], signed=True, n_word=32, n_frac=10, overflow='wrap')
+#             py_int = int(py_val.raw()) & 0xFFFFFFFF
+#             verilog_int = verilog_results[(i, j)]
+
+#             verilog_signed = verilog_int if verilog_int < (1 << 31) else verilog_int - (1 << 32)
+#             verilog_float = verilog_signed / (1 << (10 + 15 - EXP_SET))
+
+#             if py_int != verilog_int:
+#                 print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_int:08X} ({float(py_val):.4f}), "
+#                       f"Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+#                 mismatches += 1
+#             else:
+#                 print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f}) == Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+
+#     print(f"\n⚠️ {mismatches} mismatches found." if mismatches else "\n✅ All outputs match.")
+
+def single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, tolerance=0):
     acc = generate_mem_files(N, K, P, EXP_SET, ACT_MIN, ACT_MAX)
     run_testbench(N, K, P, EXP_SET)
 
     verilog_results = read_verilog_output("build/verilog_output.txt")
 
-    print("\n🧮 Comparing with Python fixed-point simulation:")
+    print("\n🧮 Comparing Verilog output with Python float simulation:")
     mismatches = 0
     for i in range(N):
         for j in range(N):
-            py_val = Fxp(acc[i][j], signed=True, n_word=32, n_frac=10, overflow='wrap')
-            py_int = int(py_val.raw()) & 0xFFFFFFFF
+            py_float = acc[i][j]  # Python float result
             verilog_int = verilog_results[(i, j)]
 
+            # Convert Verilog fixed-point int to float using Q22.10 with EXP_SET
             verilog_signed = verilog_int if verilog_int < (1 << 31) else verilog_int - (1 << 32)
             verilog_float = verilog_signed / (1 << (10 + 15 - EXP_SET))
 
-            if py_int != verilog_int:
-                print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_int:08X} ({float(py_val):.4f}), "
-                      f"Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+            diff = abs(py_float - verilog_float)
+            if diff > tolerance:
+                print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_float:.6f}, Verilog = {verilog_float:.6f}, Δ = {diff:.6f}")
                 mismatches += 1
             else:
-                print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f}) == Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+                print(f"✅ PE[{i}][{j}] MATCH: Python = {py_float:.6f} ≈ Verilog = {verilog_float:.6f}")
 
     print(f"\n⚠️ {mismatches} mismatches found." if mismatches else "\n✅ All outputs match.")
 
-def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
+
+# def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
+#     total_mismatches = 0
+#     for trial in range(num_trials):
+#         print(f"\n🔁 Trial {trial + 1}/{num_trials}")
+#         acc = generate_mem_files(N, K, P, EXP_SET, ACT_MIN, ACT_MAX)
+#         run_testbench(N, K, P, EXP_SET)
+#         verilog_results = read_verilog_output("build/verilog_output.txt")
+
+#         mismatches = 0
+#         for i in range(N):
+#             for j in range(N):
+#                 py_val = Fxp(acc[i][j], signed=True, n_word=32, n_frac=10, overflow='wrap')
+#                 py_int = int(py_val.raw()) & 0xFFFFFFFF
+#                 verilog_int = verilog_results[(i, j)]
+
+#                 verilog_signed = verilog_int if verilog_int < (1 << 31) else verilog_int - (1 << 32)
+#                 verilog_float = verilog_signed / (1 << (10 + 15 - EXP_SET))
+
+#                 if py_int != verilog_int:
+#                     print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_int:08X} ({float(py_val):.4f}), "
+#                           f"Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+#                     mismatches += 1
+#                 else:
+#                     print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f}) == Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+
+#         if mismatches:
+#             print(f"⚠️ Trial {trial + 1}: {mismatches} mismatches found.\n")
+#         else:
+#             print(f"✅ Trial {trial + 1}: All outputs match.\n")
+
+#         total_mismatches += (mismatches > 0)
+
+#     print(f"🎯 Done. {num_trials} tests run. Total mismatches: {total_mismatches}")
+
+def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10, tolerance=1e-3):
     total_mismatches = 0
     for trial in range(num_trials):
         print(f"\n🔁 Trial {trial + 1}/{num_trials}")
@@ -174,19 +235,18 @@ def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
         mismatches = 0
         for i in range(N):
             for j in range(N):
-                py_val = Fxp(acc[i][j], signed=True, n_word=32, n_frac=10, overflow='wrap')
-                py_int = int(py_val.raw()) & 0xFFFFFFFF
+                py_float = acc[i][j]  # Python float result
                 verilog_int = verilog_results[(i, j)]
 
                 verilog_signed = verilog_int if verilog_int < (1 << 31) else verilog_int - (1 << 32)
                 verilog_float = verilog_signed / (1 << (10 + 15 - EXP_SET))
 
-                if py_int != verilog_int:
-                    print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_int:08X} ({float(py_val):.4f}), "
-                          f"Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+                diff = abs(py_float - verilog_float)
+                if diff > tolerance:
+                    print(f"❌ PE[{i}][{j}] MISMATCH: Python = {py_float:.6f}, Verilog = {verilog_float:.6f}, Δ = {diff:.6f}")
                     mismatches += 1
                 else:
-                    print(f"✅ PE[{i}][{j}] MATCH: {py_int:08X} ({float(py_val):.4f}) == Verilog = {verilog_int:08X} ({verilog_float:.4f})")
+                    print(f"✅ PE[{i}][{j}] MATCH: Python = {py_float:.6f} ≈ Verilog = {verilog_float:.6f}")
 
         if mismatches:
             print(f"⚠️ Trial {trial + 1}: {mismatches} mismatches found.\n")
@@ -197,6 +257,7 @@ def multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=10):
 
     print(f"🎯 Done. {num_trials} tests run. Total mismatches: {total_mismatches}")
 
+
 # Entry point
 if __name__ == "__main__":
     N = 8
@@ -206,7 +267,8 @@ if __name__ == "__main__":
     ACT_MAX = 128
     ACT_MIN = 2
     NUM_TRIALS = 100
+    TOLERANCE = 0 # 1e-3
 
     # Choose one of the following:
-    single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET)
-    # multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, num_trials=NUM_TRIALS)
+    # single_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, TOLERANCE)
+    multi_test(N, K, P, ACT_MIN, ACT_MAX, EXP_SET, NUM_TRIALS, TOLERANCE)
