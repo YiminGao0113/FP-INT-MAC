@@ -12,7 +12,7 @@ This project implements an **FP16-INT MAC (Multiply-Accumulate) Unit** that comp
 
 ## Tools Required
 
-- **Icarus Verilog (iverilog)**: Verilog compiler to compile the testbench and module.
+- **Icarus Verilog (iverilog)**: Verilog compiler to compile the testbench and module. It's recommended to install from source since the apt-get version is usually out-of-date - https://github.com/steveicarus/iverilog
 - **GTKWave**: A waveform viewer to visualize the simulation output.
 
 You can install these tools as follows:
