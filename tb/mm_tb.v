@@ -8,7 +8,8 @@ module mm_tb;
     parameter K = 2;
     parameter P = 4;
     parameter EXP = 5'd15;
-    parameter FIFO_DEPTH = 32;
+    parameter ACT_FIFO_DEPTH = 8;
+    parameter W_FIFO_DEPTH = 128;
 
     reg clk, rst, active;
     reg [3:0] precision;
@@ -19,7 +20,7 @@ module mm_tb;
     wire [ACC_WIDTH-1:0] acc_out [N*N-1:0];
 
     reg [ACT_WIDTH-1:0] act_mem [0:N*K-1];
-    reg w_mem [0:N*K*4-1]; // Extra room for serialized weight bits
+    reg w_mem [0:N*K*P-1]; // Extra room for serialized weight bits
 
     reg [ACT_WIDTH-1:0] act_din [N-1:0];
     reg w_din [N-1:0];
@@ -46,7 +47,8 @@ module mm_tb;
         .ACC_WIDTH(ACC_WIDTH),
         .N(N),
         .K(K),
-        .FIFO_DEPTH(FIFO_DEPTH)
+        .ACT_FIFO_DEPTH(ACT_FIFO_DEPTH),
+        .W_FIFO_DEPTH(W_FIFO_DEPTH)
     ) dut (
         .clk(clk),
         .rst(rst),

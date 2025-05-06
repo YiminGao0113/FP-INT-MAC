@@ -100,25 +100,40 @@ always @(posedge clk or negedge rst)
     else mantissa_reg<=0;
 
 
+// always @(*) begin
+//     case (count)
+//         3'b000: begin
+//             shifted_fp = 14'b0;
+//             // start_acc = 0;
+//         end
+//         3'b001: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<2) : (w? fixed_mantissa<<2: 14'b0); // negative : positive
+//         3'b010: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<1) : (w? fixed_mantissa<<1: 14'b0); // negative : positive
+//         3'b011: begin
+//             shifted_fp = sign_w? (w? fixed_mantissa: fixed_mantissa<<1): (w? fixed_mantissa: 14'b0); // negative integer: if LSB = 0 >> fixed_mantissa<<1, if LSB = 1 >> fixed_mantissa
+//             // start_acc = 1;
+//         end
+//         default: begin
+//             shifted_fp = 14'b0;
+//             // sign_out = 0;
+//             // start_acc = 0;
+//         end
+//     endcase
+// end
+
 always @(*) begin
-    case (count)
-        3'b000: begin
-            shifted_fp = 14'b0;
-            // start_acc = 0;
-        end
-        3'b001: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<2) : (w? fixed_mantissa<<2: 14'b0); // negative : positive
-        3'b010: shifted_fp = sign_w? (w? 14'b0:fixed_mantissa<<1) : (w? fixed_mantissa<<1: 14'b0); // negative : positive
-        3'b011: begin
-            shifted_fp = sign_w? (w? fixed_mantissa: fixed_mantissa<<1): (w? fixed_mantissa: 14'b0); // negative integer: if LSB = 0 >> fixed_mantissa<<1, if LSB = 1 >> fixed_mantissa
-            // start_acc = 1;
-        end
-        default: begin
-            shifted_fp = 14'b0;
-            // sign_out = 0;
-            // start_acc = 0;
-        end
-    endcase
+    if (count == 3'b000) begin
+        shifted_fp = 14'b0;
+    end else if (count == (precision - 1)) begin
+        // Final bit (most significant bit)
+        shifted_fp = sign_w ? (w ? fixed_mantissa : fixed_mantissa << 1) :
+                              (w ? fixed_mantissa : 14'b0);
+    end else begin
+        // Intermediate bits
+        shifted_fp = sign_w ? (w ? 14'b0 : fixed_mantissa << (precision - 1 - count)) :
+                              (w ? fixed_mantissa << (precision - 1 - count) : 14'b0);
+    end
 end
+
 
 always @(posedge clk or negedge rst)
     if (!rst) begin

@@ -4,7 +4,8 @@ module mm #(
     parameter ACC_WIDTH = 32,
     parameter N = 2,
     parameter K = 2,
-    parameter FIFO_DEPTH = 32
+    parameter ACT_FIFO_DEPTH = 32,
+    parameter W_FIFO_DEPTH = 32
 )(
     input wire clk,
     input wire rst,
@@ -28,7 +29,7 @@ module mm #(
     genvar i;
     generate
         for (i = 0; i < N; i = i + 1) begin : row_fifos
-            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(FIFO_DEPTH)) act_fifo_inst (
+            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) act_fifo_inst (
                 .clk(clk),
                 .rst(rst),
                 .precision(precision),
@@ -40,7 +41,7 @@ module mm #(
                 .empty()
             );
 
-            fifo #(.WIDTH(1), .DEPTH(FIFO_DEPTH)) w_fifo_inst (
+            fifo #(.WIDTH(1), .DEPTH(W_FIFO_DEPTH)) w_fifo_inst (
                 .clk(clk),
                 .rst(rst),
                 .wr_en(wr_en_w),
