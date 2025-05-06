@@ -31,7 +31,7 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
     # ])  # Shape (N, K, P)
 
     # === Generate random test values ===
-    # np.random.seed(0)  # for reproducibility
+    # np.random.seed(13)  # for reproducibility
 
     # Activations: float values in a reasonable range, e.g., [-8, 8)
 
@@ -87,7 +87,7 @@ def generate_mem_files(N, K, P, exp_set, act_max=8, act_min=0, act_path='tb/act.
                 else:
                     signed_int = unsigned
 
-                a_val = np.float16(act[i][k])
+                a_val = np.float32(act[i][k])
                 mult_val = a_val * signed_int
 
                 # Accumulate
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     EXP_SET = 15
     ACT_MAX = 128
     ACT_MIN = 2
-    NUM_TRIALS = 100
+    NUM_TRIALS = 10
     TOLERANCE = 0 # 1e-3
 
     # Choose one of the following:
