@@ -1,9 +1,9 @@
   // To get started fp_int_mul unit here is only for fixed-precision arithmetic: fp16 x+ int4 operations
 // fp16 : 1=bit sign + 5-bit exponent + 10-bit mantissa
 module fp_int_mul #(
-    parameter ACT_WIDTH = 16,
+    parameter ACT_WIDTH = 4,
     // parameter W_WIDTH  = 4,
-    parameter ACC_WIDTH = 32
+    parameter ACC_WIDTH = 8
 )(
     input                       clk,
     input                       rst,
@@ -12,7 +12,7 @@ module fp_int_mul #(
     input                       valid,
     input [3:0]                 precision,
     output reg                  sign_out,
-    output [4:0]                exp_out,
+    // output [4:0]                exp_out,
     output [13:0]               mantissa_out,
     output reg                  start_acc,
     output                      _valid,
@@ -23,12 +23,12 @@ module fp_int_mul #(
 reg [ACT_WIDTH-1:0]       act_temp, __act;
 reg                       sign_w;
 wire                      act_sign;
-wire [4:0]                act_exponent;
-wire [9:0]                act_mantissa;
-wire [10:0]               fixed_mantissa;
-assign {act_sign, act_exponent, act_mantissa} = act_temp;
-assign fixed_mantissa = {1'b1, act_mantissa};
-assign exp_out = act_exponent;
+// wire [4:0]                act_exponent;
+// wire [9:0]                act_mantissa;
+wire [3:0]               fixed_mantissa;
+// assign {act_sign, act_exponent, act_mantissa} = act_temp;
+assign fixed_mantissa = act_temp;
+// assign exp_out = act_exponent;
 
 reg [2:0]             count;
 
@@ -88,9 +88,9 @@ assign _valid = shift_reg[precision] || shift_reg[precision-1];
 
 
 // The accumulator in the Multiplier unit
-reg  [13:0] mantissa_reg;
+reg  [3:0] mantissa_reg;
 // wire  [14:0] mantissa_temp;
-reg   [13:0] shifted_fp;
+reg   [7:0] shifted_fp;
 
 fixed_point_adder fixed_adder(mantissa_reg, shifted_fp, mantissa_out);
 
@@ -156,9 +156,9 @@ always @(posedge clk or negedge rst)
 endmodule
 
 module fixed_point_adder(
-    input      [13:0]  A,
-    input      [13:0]  B,
-    output     [13:0]  C
+    input      [7:0]  A,
+    input      [7:0]  B,
+    output     [7:0]  C
 );
 // This is the intermediate represetation in order to have the least # of rounding at the end of computation.
 // The 14-bit fixed point representation consists of 4 bits . 10 bits mantissa
