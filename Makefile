@@ -48,7 +48,7 @@ mm:
 
 
 # Rule to compile fp_int_mac with dependencies when running `make all`
-fp_int_mac:
+int_mac:
 	@echo "Processing systolic..."
 	@mkdir -p $(BUILD_DIR)
 	iverilog -o $(BUILD_DIR)/fp_int_mac_dsn $(TB_DIR)/fp_int_mac_tb.v $(SRC_DIR)/fp_int_mac.v $(SRC_DIR)/fp_int_mul.v $(SRC_DIR)/fp_int_acc.v

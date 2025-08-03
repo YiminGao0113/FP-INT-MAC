@@ -1,7 +1,7 @@
 
 module mm #(
-    parameter ACT_WIDTH = 16,
-    parameter ACC_WIDTH = 32,
+    parameter ACT_WIDTH = 4,
+    parameter ACC_WIDTH = 16,
     parameter N = 2,
     parameter K = 2,
     parameter ACT_FIFO_DEPTH = 32,

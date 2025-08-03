@@ -1,4 +1,4 @@
-module fp_int_acc (
+module int_acc (
     input          clk,
     input          rst,
     // input          valid,

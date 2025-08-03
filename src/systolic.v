@@ -1,7 +1,7 @@
 
 module systolic #(
-    parameter ACT_WIDTH = 16,
-    parameter ACC_WIDTH = 32,
+    parameter ACT_WIDTH = 4,
+    parameter ACC_WIDTH = 16,
     parameter N         = 2
 )(
     input                   clk,
@@ -73,7 +73,7 @@ module systolic #(
                 end
                 // assign previous_pe_generated_valid = previous_pe_generated_valid_reg & pe_valid[i][j-1];
 
-                fp_int_mac #(
+                int_mac #(
                     .ACT_WIDTH(ACT_WIDTH),
                     .ACC_WIDTH(ACC_WIDTH)
                 ) pe_inst (
@@ -86,9 +86,9 @@ module systolic #(
                     ._act(pe_act[i][j+1]),
                     ._w(_w_input),
                     ._valid(pe_valid[i][j]),
-                    .exp_set(exp_set),
+                    // .exp_set(exp_set),
                     .fixed_point_acc(fixed_point_out_temp),
-                    .exp_out(exp_out[i*N+j]),
+                    // .exp_out(exp_out[i*N+j]),
                     .fixed_point_out(fixed_point_out_temp),
                     .SA_done(pe_done[i*N+j])
                 );
