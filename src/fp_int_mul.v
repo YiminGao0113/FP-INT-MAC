@@ -9,7 +9,7 @@ parameter ACT_WIDTH = 4,
     input                       valid,
     input [2:0]                 precision,    // Usually 4 for INT4
 
-    output reg signed [ACC_WIDTH-1:0] mantissa_out,  // Final MAC output
+    output signed [ACC_WIDTH-1:0]     mantissa_out,  // Final MAC output
     output reg                        start_acc,     // Pulse: computation done
     output                           _valid,         // Aligned valid signal
     output reg [ACT_WIDTH-1:0]       _act,
@@ -90,7 +90,7 @@ end
 // ───── Final output and control ─────
 always @(posedge clk or negedge rst) begin
     if (!rst) begin
-        mantissa_out <= 0;
+        // mantissa_out <= 0;
         start_acc <= 0;
         sign_out <= 0;
     end else begin
@@ -99,12 +99,13 @@ always @(posedge clk or negedge rst) begin
             sign_out <= act[ACT_WIDTH-1] ^ w;
             start_acc <= 0;
         end else if (count == precision - 1) begin
-            mantissa_out <= accumulator;
+            // mantissa_out <= accumulator;
             start_acc <= 1;
         end else begin
             start_acc <= 0;
         end
     end
 end
+assign mantissa_out = accumulator;
 
 endmodule

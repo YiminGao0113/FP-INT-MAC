@@ -26,7 +26,7 @@ wire signed [ACC_WIDTH-1:0] mantissa_out; // MAC output
 // ────────────── Instantiate INT4 × INT4 MAC Unit ──────────────
 int4_bitserial_mul #(
     .ACT_WIDTH(ACT_WIDTH),
-    .ACC_WIDTH(ACC_WIDTH)
+    .ACC_WIDTH(8)
 ) mul_unit (
     .clk(clk),
     .rst(rst),
@@ -37,7 +37,7 @@ int4_bitserial_mul #(
 
     .mantissa_out(mantissa_out),
     .start_acc(start_acc),
-    .sign_out(sign_out),
+    // .sign_out(sign_out),
     ._valid(_valid),
     ._act(_act),
     ._w(_w)
@@ -50,7 +50,7 @@ int_acc #(
     .clk(clk),
     .rst(rst),
     .start(start_acc),                 // When new MAC result arrives
-    .sign_in(sign_out),               // Final sign info
+    // .sign_in(sign_out),               // Final sign info
     .fixed_point_in(mantissa_out),    // Result of MAC unit
     .fixed_point_acc(fixed_point_acc),
     .fixed_point_out(fixed_point_out),

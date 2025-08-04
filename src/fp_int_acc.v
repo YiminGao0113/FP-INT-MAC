@@ -1,76 +1,34 @@
-module int_acc (
-    input          clk,
-    input          rst,
-    // input          valid,
-    input          start,
-    input          sign_in,
-    // input  [4:0]   exp_set,
-    input  [31:0]  fixed_point_acc,
-    // input  [4:0]   exp_in,
-    input  [13:0]  fixed_point_in,
-    // output [4:0]   exp_out,
-    output [31:0]  fixed_point_out,
-    output reg     done
+module int_acc #(
+    parameter ACC_WIDTH = 32
+)(
+    input                     clk,
+    input                     rst,
+    input                     start,
+    input  [ACC_WIDTH-1:0]    fixed_point_acc,
+    input  signed [7:0]      fixed_point_in,
+    output [ACC_WIDTH-1:0]    fixed_point_out,
+    output reg                done
 );
 
-// wire [4:0] diff;
-reg _sign_in;
-// assign diff = _exp_in - exp_set;
+reg [ACC_WIDTH-1:0] fixed_point_reg;
 
-reg [31:0] fixed_point_reg;
-// reg [4:0] exp_reg, _exp_in;
-// reg [31:0] fixed_point_in_shifted;
-// reg shifted;
+// Sign-extend fixed_point_in to ACC_WIDTH
+wire signed [ACC_WIDTH-1:0] fixed_point_in_ext = fixed_point_in;
 
-always @(posedge clk or negedge rst)
+always @(posedge clk or negedge rst) begin
     if (!rst) begin
         fixed_point_reg <= 0;
         done <= 0;
-        _sign_in <= 0;
-        // _exp_in <= 0;
     end
-    else if (start&&!done) begin
-        _sign_in <= sign_in;
-        fixed_point_reg <= _sign_in? fixed_point_acc - fixed_point_in: fixed_point_acc + fixed_point_in;
-        // shifted <= 0;
+    else if (start && !done) begin
+        fixed_point_reg <= fixed_point_acc + fixed_point_in_ext;
         done <= 1;
-        
-        // _exp_in <= exp_in;
     end
     else begin
-        _sign_in <= sign_in;
         done <= 0;
-        // _exp_in <= exp_in;
     end
-
-// always @(posedge clk or negedge rst) begin
-//     if (!rst) begin
-        // fixed_point_in_shifted <= 0;
-        // exp_reg <= 0;
-    //     // shifted <= 0;
-    // end
-    // else if (start) begin
-        // done <= 0;
-        // if (~|diff) begin // If diff == 0
-        //     fixed_point_in_shifted <= fixed_point_in;
-        // end
-        // else if (!diff[4]) begin // If exp_set < exp_in, diff[4] would be 0
-        //     fixed_point_in_shifted <= fixed_point_in<<diff; //shift by the two's complement of diff since diff would be negative values here
-        // end
-        // else begin // If exp_set > exp_in, diff[4] would be 1
-        //     fixed_point_in_shifted <= fixed_point_in>>-diff;
-        // end
-        // shifted <= 1;
-        // exp_reg <= exp_set;
-//     end
-//     else begin
-//         fixed_point_in_shifted <= fixed_point_in_shifted;
-//     end
-// end
-
-
+end
 
 assign fixed_point_out = fixed_point_reg;
-// assign exp_out = exp_reg;
 
 endmodule
