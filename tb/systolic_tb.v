@@ -2,8 +2,8 @@
 
 module systolic_tb;
 
-    parameter ACT_WIDTH = 16;
-    parameter ACC_WIDTH = 32;
+    parameter ACT_WIDTH = 4;
+    parameter ACC_WIDTH = 16;
     parameter N = 2;
 
     reg clk, rst, active;
