@@ -3,7 +3,7 @@
 module int_mac_tb;
 
     parameter ACT_WIDTH = 4;
-    parameter ACC_WIDTH = 16;
+    parameter ACC_WIDTH = 8;
 
     reg clk;
     reg rst;

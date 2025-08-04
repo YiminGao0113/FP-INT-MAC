@@ -1,6 +1,6 @@
 module int4_bitserial_mul #(
 parameter ACT_WIDTH = 4,
-    parameter ACC_WIDTH = 12
+    parameter ACC_WIDTH = 8
 )(
     input                       clk,
     input                       rst,
@@ -71,17 +71,19 @@ always @(posedge clk or negedge rst) begin
         accumulator <= 0;
     end else if (valid) begin
         if (count == 0) begin
-            shifted_act <= {{(ACC_WIDTH - ACT_WIDTH){act[ACT_WIDTH-1]}}, act};
+            shifted_act <= {{(ACC_WIDTH - ACT_WIDTH - 1){act[ACT_WIDTH-1]}}, act, 1'b0};
         end else begin
             shifted_act <= shifted_act <<< 1;
         end
 
-        if (_w) begin
-            if (count == precision - 1)
-                accumulator <= accumulator - shifted_act;
-            else
-                accumulator <= accumulator + shifted_act;
-        end
+        // if (w) begin
+        if (count == precision - 1)
+            accumulator <= w ? accumulator - shifted_act : accumulator;
+        else if (count == 0)
+            accumulator <= w ? act : 0;
+        else
+            accumulator <= w ? accumulator + shifted_act : accumulator;
+        // end
     end
 end
 
