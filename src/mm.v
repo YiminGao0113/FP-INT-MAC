@@ -2,10 +2,10 @@
 module mm #(
     parameter ACT_WIDTH = 4,
     parameter ACC_WIDTH = 16,
-    parameter N = 2,
-    parameter K = 2,
-    parameter ACT_FIFO_DEPTH = 32,
-    parameter W_FIFO_DEPTH = 32
+    parameter N = 8,
+    parameter K = 8,
+    parameter ACT_FIFO_DEPTH = 8,
+    parameter W_FIFO_DEPTH = 128
 )(
     input wire clk,
     input wire rst,
