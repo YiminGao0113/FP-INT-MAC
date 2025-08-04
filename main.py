@@ -98,8 +98,8 @@ def single_test(N, K, P):
     print(f"\n⚠️ {mismatches} mismatches found." if mismatches else "\n✅ All outputs match.")
 
 if __name__ == "__main__":
-    N = 4      # number of rows/columns (PEs)
-    K = 4      # input channels
+    N = 8      # number of rows/columns (PEs)
+    K = 8      # input channels
     P = 4      # bit-serial width for int4 weights
 
     single_test(N, K, P)
