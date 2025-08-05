@@ -6,7 +6,7 @@ module act_fifo #(
     input  wire rst,
     input  wire wr_en,
     input  wire rd_en,
-    input [3:0] precision,
+    input [2:0] precision,
     input  wire [WIDTH-1:0] din,
     output reg  [WIDTH-1:0] dout,
     // input [3:0] precision,
