@@ -10,7 +10,7 @@ module mm #(
     input wire clk,
     input wire rst,
     input wire active,
-    input wire [3:0] precision,
+    input wire [2:0] precision,
     input wire [4:0] exp_set,
     input wire [ACT_WIDTH-1:0] act_din [N-1:0],
     input wire w_din [N-1:0],

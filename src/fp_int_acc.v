@@ -5,7 +5,7 @@ module int_acc #(
     input                     rst,
     input                     start,
     input  [ACC_WIDTH-1:0]    fixed_point_acc,
-    input  signed [7:0]      fixed_point_in,
+    input  signed [ACC_WIDTH-1:0]      fixed_point_in,
     output [ACC_WIDTH-1:0]    fixed_point_out,
     output reg                done
 );

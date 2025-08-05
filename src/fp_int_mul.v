@@ -1,5 +1,5 @@
 module int4_bitserial_mul #(
-parameter ACT_WIDTH = 4,
+    parameter ACT_WIDTH = 4,
     parameter ACC_WIDTH = 8
 )(
     input                       clk,

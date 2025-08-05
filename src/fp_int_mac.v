@@ -5,7 +5,7 @@ module int_mac #(
     input                       clk,
     input                       rst,
     input                       valid,
-    input [3:0]                 precision,           // Bit-serial precision (e.g., 4)
+    input [2:0]                 precision,           // Bit-serial precision (e.g., 4)
     input signed [ACT_WIDTH-1:0] act,                // Full INT4 activation
     input                       w,                   // 1-bit serial weight input (LSB to MSB)
     input signed [ACC_WIDTH-1:0] fixed_point_acc,    // Initial accumulator state (external reg)
@@ -26,7 +26,7 @@ wire signed [ACC_WIDTH-1:0] mantissa_out; // MAC output
 // ────────────── Instantiate INT4 × INT4 MAC Unit ──────────────
 int4_bitserial_mul #(
     .ACT_WIDTH(ACT_WIDTH),
-    .ACC_WIDTH(8)
+    .ACC_WIDTH(ACC_WIDTH)
 ) mul_unit (
     .clk(clk),
     .rst(rst),

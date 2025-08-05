@@ -7,7 +7,7 @@ module systolic #(
     input                   clk,
     input                   rst,
     input                   active,
-    input [3:0]             precision,
+    input [2:0]             precision,
     input [ACT_WIDTH-1:0]   act_in [N-1:0],
     input                  w_in [N-1:0],
     input [4:0]             exp_set,
