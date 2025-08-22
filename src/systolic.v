@@ -20,10 +20,10 @@ module systolic #(
 
     // Internal signals
     wire [ACT_WIDTH-1:0] pe_act [0:N][0:N];
-    wire                 pe_w   [0:N][0:N];
+    wire [ACT_WIDTH-1:0] pe_w   [0:N][0:N];
     wire                 pe_valid [0:N][0:N];
     wire [N*N-1:0]       pe_done;
-    wire [4:0]           pe_exp_out [N*N-1:0];
+    // wire [4:0]           pe_exp_out [N*N-1:0];
     wire [ACC_WIDTH-1:0] pe_acc_out [N*N-1:0];
     // reg  [ACC_WIDTH-1:0] pe_acc_reg [N*N-1:0];
 
