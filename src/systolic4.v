@@ -9,7 +9,10 @@ module systolic_array #(
     input  wire                    en,
     input  wire [D_W-1:0]          a_in [0:N-1],     // row inputs
     input  wire [D_W-1:0]          b_in [0:N-1],     // column inputs
-    output wire [ACC_WIDTH-1:0]    c_out [0:N-1][0:N-1] // outputs
+    output wire [ACC_WIDTH-1:0]    c_out [0:N-1][0:N-1], // outputs
+    output                         done,
+    output [N-1:0]          active_row,
+    output [N-1:0]          active_column
 );
 
     // Internal systolic signals
@@ -49,5 +52,15 @@ module systolic_array #(
             end
         end
     endgenerate
+    assign done = en_sig_out[N-1][N-1] & !en_sig[N-1][N-1];
 
+    genvar rr, cc;
+    generate
+        for (rr = 0; rr < N; rr = rr + 1) begin : gen_active_row
+            assign active_row[rr] = en_sig[rr][0];
+        end
+        for (cc = 0; cc < N; cc = cc + 1) begin : gen_active_column
+            assign active_column[cc] = en_sig[0][cc];
+        end
+    endgenerate
 endmodule
