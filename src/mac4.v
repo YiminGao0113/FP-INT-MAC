@@ -1,0 +1,85 @@
+module mac_comp #
+(
+    parameter D_W       = 4,   // input bitwidth
+    parameter ACC_WIDTH = 16   // accumulator bitwidth
+)
+(
+    input  wire                  clk,
+    input  wire                  rst,   // synchronous reset
+    input  wire                  en,    // enable signal
+    input  wire [D_W-1:0]        a,     // input a
+    input  wire [D_W-1:0]        b,     // input b
+    output reg  [ACC_WIDTH-1:0]  acc    // accumulator
+);
+
+    // product has width = 2*D_W
+    wire [2*D_W-1:0] prod;
+
+    assign prod = a * b;
+
+    always @(posedge clk) begin
+        if (rst)
+            acc <= {ACC_WIDTH{1'b0}};
+        else if (en)
+            acc <= acc + prod;
+    end
+
+endmodule
+// Wrapper PE with systolic forwarding and configurable delay
+module mac #
+(
+    parameter D_W            = 4,
+    parameter ACC_WIDTH      = 16
+    // parameter PROP_DELAY     = 1   // cycles to hold before propagating
+)
+(
+    input  wire                  clk,
+    input  wire                  rst,
+    input  wire                  en,
+    input  wire [D_W-1:0]        a,
+    input  wire [D_W-1:0]        b,
+    output wire [ACC_WIDTH-1:0]  acc,
+
+    // systolic pass-through (delayed by PROP_DELAY cycles)
+    output wire [D_W-1:0]        a_out,
+    output wire [D_W-1:0]        b_out,
+    output wire                  en_out
+);
+
+    // --- Core MAC computation ---
+    mac_comp #(
+        .D_W(D_W),
+        .ACC_WIDTH(ACC_WIDTH)
+    ) u_mac4 (
+        .clk(clk),
+        .rst(rst),
+        .en(en),
+        .a(a),
+        .b(b),
+        .acc(acc)
+    );
+
+    // --- Shift registers for delayed propagation ---
+    reg [D_W-1:0] a_reg;
+    reg [D_W-1:0] b_reg;
+    reg           en_reg;
+
+    integer i;
+    always @(posedge clk) begin
+        if (rst) begin
+            a_reg <= 0;
+            b_reg <= 0;
+            en_reg <= 0;
+        end else begin
+            a_reg  <= a;
+            b_reg <= b;
+            en_reg <= en;
+        end
+    end
+
+    // Outputs after PROP_DELAY cycles
+    assign a_out  = a_reg;
+    assign b_out  = b_reg;
+    assign en_out = en_reg;
+
+endmodule
