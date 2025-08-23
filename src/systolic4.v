@@ -10,7 +10,8 @@ module systolic_array #(
     input  wire [D_W-1:0]          a_in [0:N-1],     // row inputs
     input  wire [D_W-1:0]          b_in [0:N-1],     // column inputs
     output wire [ACC_WIDTH-1:0]    c_out [0:N-1][0:N-1], // outputs
-    output                         done,
+    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0],
+    output reg                     done,
     output [N-1:0]          active_row,
     output [N-1:0]          active_column
 );
@@ -22,10 +23,7 @@ module systolic_array #(
     wire [D_W-1:0] b_sig_out     [0:N-1][0:N];   // N x (N+1)
     wire           en_sig    [0:N][0:N-1];   // (N+1)xN
     wire           en_sig_out[0:N][0:N-1];   // (N+1)xN
-    wire en01, en_out00;
-    assign en10 = en_sig[1][0];
-    assign en_out00 = en_sig_out[0][0];
-
+    wire done_tmp;
     // --- Instantiate PE grid ---
     genvar r, c;
     generate
@@ -46,13 +44,18 @@ module systolic_array #(
                     .b_out(b_sig_out[r][c]),
                     .en_out(en_sig_out[r][c])
                 );
-                assign en_sig[r][c] = (r==0&c==0)? en : ((c==0)? en_sig_out[r-1][c]:en_sig_out[r][c-1]);
+                assign en_sig[r][c] = (r==0&c==0)? en : 
+                                    //   (r==0&&c==1)||(r==1&&c==0)? __en :
+                                      ((c==0)? en_sig_out[r-1][c]:en_sig_out[r][c-1]);
                 assign a_sig[r][c] = (c == 0)? a_in[r] : a_sig_out[r][c-1];
                 assign b_sig[r][c] = (r == 0)? b_in[c] : b_sig_out[r-1][c];
             end
         end
     endgenerate
-    assign done = en_sig_out[N-1][N-1] & !en_sig[N-1][N-1];
+    assign done_tmp = en_sig_out[N-1][N-1] & !en_sig[N-1][N-1];
+    always @(posedge clk or negedge rst)
+        if (!rst) done <= 0;
+        else done <= done_tmp;
 
     genvar rr, cc;
     generate
@@ -61,6 +64,17 @@ module systolic_array #(
         end
         for (cc = 0; cc < N; cc = cc + 1) begin : gen_active_column
             assign active_column[cc] = en_sig[0][cc];
+        end
+    endgenerate
+
+        // -------- NEW: flatten c_out -> acc_out (row-major) --------
+    genvar fr, fc;
+    generate
+        for (fr = 0; fr < N; fr = fr + 1) begin : FLAT_ROW
+            for (fc = 0; fc < N; fc = fc + 1) begin : FLAT_COL
+                localparam int FLAT_IDX = fr * N + fc;
+                assign acc_out[FLAT_IDX] = c_out[fr][fc];
+            end
         end
     endgenerate
 endmodule

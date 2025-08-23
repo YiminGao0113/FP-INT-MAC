@@ -14,7 +14,7 @@ module mm #(
     input wire wr_en_act,
     input wire wr_en_w,
     output wire done,
-    output wire [ACC_WIDTH-1:0] acc_out [0:N-1][0:N-1]
+    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0]
 );
 
     wire [ACT_WIDTH-1:0] act_fifo_a_out [N-1:0];
@@ -56,13 +56,26 @@ module mm #(
     ) systolic_inst (
         .clk(clk),
         .rst(rst),
-        .en(active),
+        .en(__active),
         .a_in(act_fifo_a_out),
         .b_in(act_fifo_b_out),
         .done(done),
-        .c_out(acc_out),
+        .acc_out(acc_out),
         .active_row(active_row),
         .active_column(active_column)
     );
+
+    reg _active, __active;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            _active <= 0;
+            __active <= 0;
+        end 
+        else begin
+            _active <= active;
+            __active <= _active;
+        end
+    end
+    
 
 endmodule

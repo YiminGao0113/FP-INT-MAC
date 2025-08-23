@@ -14,11 +14,12 @@ module mac_comp #
 
     // product has width = 2*D_W
     wire [2*D_W-1:0] prod;
+    
 
     assign prod = a * b;
 
     always @(posedge clk) begin
-        if (rst)
+        if (!rst)
             acc <= {ACC_WIDTH{1'b0}};
         else if (en)
             acc <= acc + prod;
@@ -53,7 +54,7 @@ module mac #
     ) u_mac4 (
         .clk(clk),
         .rst(rst),
-        .en(en),
+        .en(en_reg),
         .a(a),
         .b(b),
         .acc(acc)
@@ -66,7 +67,7 @@ module mac #
 
     integer i;
     always @(posedge clk) begin
-        if (rst) begin
+        if (!rst) begin
             a_reg <= 0;
             b_reg <= 0;
             en_reg <= 0;

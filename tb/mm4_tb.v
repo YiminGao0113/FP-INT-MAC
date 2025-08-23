@@ -21,7 +21,7 @@ module mm_tb;
     reg        [4:0]             exp_set;
     wire                         done;
     wire [4:0]                   exp_out [0:N*N-1];
-    wire [ACC_WIDTH-1:0]         acc_out [0:N-1][0:N-1];
+    wire [ACC_WIDTH-1:0]         acc_out [N*N-1:0];
 
     // ---- Memories (parallel words now) ----
     reg [ACT_WIDTH-1:0] act_mem [0:N*K-1];   // N rows × K steps
@@ -71,8 +71,8 @@ module mm_tb;
         end
 
         // ---- Reset & init ----
-        clk = 0;
-        rst = 1;
+        clk = 1;
+        rst = 0;
         active = 0;
         precision = PRECISION_INIT;  // not used in parallel mode
         exp_set   = EXP_SET_INIT;    // not used; mm ties exp_out to 0
@@ -91,7 +91,8 @@ module mm_tb;
         $readmemh("tb/w.mem",   w_mem);
 
         // Release reset
-        #12 rst = 0;
+        #10 rst = 1; wr_en_act = 0; wr_en_w = 0;
+        #20
 
         // ----------------------------------------------------------------
         // Push K steps of activations & weights into their FIFOs
@@ -123,18 +124,32 @@ module mm_tb;
         active = 0;
 
         // Wait for done
-        // wait (done);
-        #100;
+        wait (done);  // Wait for 'done' signal to become high
 
-        // Dump outputs
-        // $fdisplay(outfile, "==== [DONE asserted] mm (N=%0d, K=%0d) Outputs ====", N, K);
-        // for (l = 0; l < N*N; l = l + 1) begin
-        //     $fdisplay(outfile, "PE[%0d][%0d]: %h", l/N, l%N, acc_out[l]);
-        // end
-        // $fdisplay(outfile, "====================================================");
+        // Optionally wait one cycle after 'done' is high
+        #10;
 
-        // $fclose(outfile);
+        $fclose(outfile);
         $finish;
+    end
+    
+    always @(posedge done) begin
+        // $display("==== [DONE asserted] Checking Outputs ====");
+        // for (l = 0; l < N*N; l= l + 1) begin
+        //     if (acc_out[l] !== expected_out[l])
+        //         $display("Mismatch at PE[%0d][%0d]: got %h, expected %h", l/N, l%N, acc_out[l], expected_out[l]);
+        //     else
+        //         $display("PE[%0d][%0d] correct: %h", l/N, l%N, acc_out[l]);
+        // end
+        // $display("==========================================");
+        $fdisplay(outfile, "==== [DONE asserted] Checking Outputs ====");
+        for (l = 0; l < N*N; l = l + 1) begin
+            // if (acc_out[l] !== expected_out[l])
+                // $fdisplay(outfile, "Mismatch at PE[%0d][%0d]: got %h, expected %h", l/N, l%N, acc_out[l], expected_out[l]);
+            // else
+            $fdisplay(outfile, "PE[%0d][%0d]: %h", l/N, l%N, acc_out[l]);
+        end
+        $fdisplay(outfile, "==========================================");
     end
 
 endmodule

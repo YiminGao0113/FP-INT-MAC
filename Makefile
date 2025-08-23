@@ -40,14 +40,16 @@ mm4:
 	@echo "Building & running mm4 testbench..."
 	@mkdir -p $(BUILD_DIR)
 	iverilog -g2012 -o $(BUILD_DIR)/mm4_tb.out \
+		-s mm_tb \
+		-Pmm_tb.N=$(N) \
+		-Pmm_tb.K=$(K) \
 		$(TB_DIR)/mm4_tb.v \
 		$(SRC_DIR)/mm4.v \
 		$(SRC_DIR)/systolic4.v \
 		$(SRC_DIR)/mac4.v \
 		$(SRC_DIR)/act_fifo4.v
 	vvp $(BUILD_DIR)/mm4_tb.out
-	@echo "VCD (if generated): $(BUILD_DIR)/mm_tb.vcd"
-	# gtkwave $(BUILD_DIR)/mm_tb.vcd &
+
 
 mm:
 	@echo "Running mm_tb with systolic..."

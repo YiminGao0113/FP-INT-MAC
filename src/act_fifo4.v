@@ -37,38 +37,18 @@ module act_fifo #(
             for (i = 0; i < DEPTH; i = i + 1)
                 mem[i] <= 0;
         end else begin
-            // if (count == precision) active <= 1;
-            // else if (empty)         active <= 0;
-            // Simultaneous read and write
-            // if (wr_en && !full && rd_en && !empty) begin
-            //     mem[wr_ptr] <= din;
-            //     wr_ptr <= wr_ptr + 1;
-            //     dout   <= mem[rd_ptr];
-            //     rd_ptr <= rd_ptr + 1;
-            //     // count stays the same
-            // end
-            // Write only
-            // else 
             if (wr_en && !full) begin
                 mem[wr_ptr] <= din;
                 wr_ptr <= wr_ptr + 1;
                 count  <= count + 1;
             end
             // Read only
-            else if (rd_en && !empty && precision_count==0) begin
+            else if (rd_en && !empty) begin
                 dout <= mem[rd_ptr];
                 rd_ptr <= rd_ptr + 1;
                 count  <= count - 1;
             end
         end
-    end
-
-    always @(posedge clk or negedge rst) begin
-        if (!rst) precision_count <= 0;
-        else if (rd_en) begin
-            precision_count <= (precision_count < PRECISION-1)? precision_count + 1 : 0;
-        end
-
     end
 
 endmodule
