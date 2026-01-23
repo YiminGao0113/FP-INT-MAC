@@ -74,6 +74,31 @@ tile4:
 		$(SRC_DIR)/act_fifo4.v
 	vvp $(BUILD_DIR)/tile4_tb.out
 
+# ---- gemm_tile (maps N_FULLxN_FULLxK onto TILE_N compute_tile passes) ----
+# Env overrides:
+#   N_FULL, TILE_N, MAX_K, K_TILE, K_TOTAL
+N_FULL ?= 8
+TILE_N ?= 4
+
+gemm4:
+	@echo "Building & running gemm_tile testbench..."
+	@mkdir -p $(BUILD_DIR)
+	iverilog -g2012 -o $(BUILD_DIR)/gemm4_tb.out \
+		-s gemm_tile_tb \
+		-Pgemm_tile_tb.N_FULL=$(N_FULL) \
+		-Pgemm_tile_tb.TILE_N=$(TILE_N) \
+		-Pgemm_tile_tb.MAX_K=$(MAX_K) \
+		-Pgemm_tile_tb.K_TILE=$(K_TILE) \
+		-Pgemm_tile_tb.K_TOTAL=$(K_TOTAL) \
+		$(TB_DIR)/gemm_tile_tb.v \
+		$(SRC_DIR)/gemm_tile.v \
+		$(SRC_DIR)/compute_tile.v \
+		$(SRC_DIR)/mm4.v \
+		$(SRC_DIR)/systolic4.v \
+		$(SRC_DIR)/mac4.v \
+		$(SRC_DIR)/act_fifo4.v
+	vvp $(BUILD_DIR)/gemm4_tb.out
+
 mm:
 	@echo "Running mm_tb with systolic..."
 	@mkdir -p $(BUILD_DIR)

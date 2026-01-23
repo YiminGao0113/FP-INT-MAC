@@ -36,18 +36,6 @@ module act_fifo #(
             for (i = 0; i < DEPTH; i = i + 1)
                 mem[i] <= 0;
         end else begin
-            // if (count == precision) active <= 1;
-            // else if (empty)         active <= 0;
-            // Simultaneous read and write
-            // if (wr_en && !full && rd_en && !empty) begin
-            //     mem[wr_ptr] <= din;
-            //     wr_ptr <= wr_ptr + 1;
-            //     dout   <= mem[rd_ptr];
-            //     rd_ptr <= rd_ptr + 1;
-            //     // count stays the same
-            // end
-            // Write only
-            // else 
             if (wr_en && !full) begin
                 mem[wr_ptr] <= din;
                 wr_ptr <= wr_ptr + 1;
