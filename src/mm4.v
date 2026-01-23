@@ -1,31 +1,42 @@
-
 module mm #(
     parameter ACT_WIDTH = 4,
     parameter ACC_WIDTH = 16,
     parameter N = 8,
     parameter K = 8,
-    parameter ACT_FIFO_DEPTH = 8
+    parameter ACT_FIFO_DEPTH = 8,
+    parameter OUT_FIFO_DEPTH = 32,
+    parameter PIPE_LAT = 1   // latency from row_done_pulse -> first valid acc_stream_out
 )(
-    input wire clk,
-    input wire rst,
-    input wire active,
-    input wire [ACT_WIDTH-1:0] ain [N-1:0],
-    input wire [ACT_WIDTH-1:0] bin [N-1:0],
-    input wire wr_en_act,
-    input wire wr_en_w,
-    output wire done,
-    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0]
+    input  wire                    clk,
+    input  wire                    rst,
+    input  wire                    active,
+    input  wire [ACT_WIDTH-1:0]    ain [N-1:0],
+    input  wire [ACT_WIDTH-1:0]    bin [N-1:0],
+    input  wire                    wr_en_act,
+    input  wire                    wr_en_w,
+
+    output wire                    done,
+    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0],
+
+    // per-row output FIFO
+    input  wire [N-1:0]            out_rd_en,
+    output wire [N-1:0]            out_empty,
+    output wire [N-1:0]            out_full,
+    output wire [ACC_WIDTH-1:0]    out_dout [N-1:0]
 );
 
+    // ============================================================
+    // Input FIFOs
+    // ============================================================
     wire [ACT_WIDTH-1:0] act_fifo_a_out [N-1:0];
     wire [ACT_WIDTH-1:0] act_fifo_b_out [N-1:0];
-    wire [N-1:0] active_row;
-    wire [N-1:0] active_column;
+    wire [N-1:0]         active_row;
+    wire [N-1:0]         active_column;
 
     genvar i;
     generate
-        for (i = 0; i < N; i = i + 1) begin : row_fifos
-            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) act_fifo_a_inst (
+        for (i = 0; i < N; i = i + 1) begin : IN_FIFOS
+            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) fifo_a (
                 .clk(clk),
                 .rst(rst),
                 .wr_en(wr_en_act),
@@ -35,8 +46,8 @@ module mm #(
                 .full(),
                 .empty()
             );
-            
-            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) act_fifo_b_inst (
+
+            act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) fifo_b (
                 .clk(clk),
                 .rst(rst),
                 .wr_en(wr_en_w),
@@ -48,6 +59,26 @@ module mm #(
             );
         end
     endgenerate
+
+    // ============================================================
+    // Active pipeline (same as before)
+    // ============================================================
+    reg _active, __active;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            _active  <= 1'b0;
+            __active <= 1'b0;
+        end else begin
+            _active  <= active;
+            __active <= _active;
+        end
+    end
+
+    // ============================================================
+    // Systolic array
+    // ============================================================
+    wire [ACC_WIDTH-1:0] acc_stream_out [N-1:0];
+    wire [N-1:0]         row_done_pulse;
 
     systolic_array #(
         .D_W(ACT_WIDTH),
@@ -61,21 +92,87 @@ module mm #(
         .b_in(act_fifo_b_out),
         .done(done),
         .acc_out(acc_out),
+        .acc_stream_out(acc_stream_out),
+        .row_done_pulse(row_done_pulse),
         .active_row(active_row),
         .active_column(active_column)
     );
 
-    reg _active, __active;
+    // ============================================================
+    // Stream control (FIXED)
+    // ============================================================
+    reg [N-1:0] streaming;
+    reg [N-1:0] stream_valid;
+    reg [$clog2(N):0] cnt [N-1:0];
+    reg [$clog2(PIPE_LAT+1):0] lat_cnt [N-1:0];
+
+    integer r;
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
-            _active <= 0;
-            __active <= 0;
-        end 
-        else begin
-            _active <= active;
-            __active <= _active;
+            streaming    <= '0;
+            stream_valid <= '0;
+            for (r = 0; r < N; r = r + 1) begin
+                cnt[r]     <= '0;
+                lat_cnt[r] <= '0;
+            end
+        end else begin
+            for (r = 0; r < N; r = r + 1) begin
+                // start stream
+                if (row_done_pulse[r]) begin
+                    streaming[r]    <= 1'b1;
+                    stream_valid[r] <= 1'b0;
+                    cnt[r]          <= '0;
+                    lat_cnt[r]      <= '0;
+                end
+
+                // wait for pipeline latency
+                if (streaming[r] && !stream_valid[r]) begin
+                    if (lat_cnt[r] == PIPE_LAT-1)
+                        stream_valid[r] <= 1'b1;
+                    else
+                        lat_cnt[r] <= lat_cnt[r] + 1'b1;
+                end
+
+                // stream data
+                if (stream_valid[r]) begin
+                    if (cnt[r] == N-1) begin
+                        streaming[r]    <= 1'b0;
+                        stream_valid[r] <= 1'b0;
+                        cnt[r]          <= '0;
+                    end else begin
+                        cnt[r] <= cnt[r] + 1'b1;
+                    end
+                end
+            end
         end
     end
-    
+
+    // ============================================================
+    // Output FIFOs (NOW ALIGNED)
+    // ============================================================
+    wire [N-1:0] out_wr_en;
+    generate
+        for (i = 0; i < N; i = i + 1) begin : OUT_WR
+            assign out_wr_en[i] = stream_valid[i] & ~out_full[i];
+        end
+    endgenerate
+
+    generate
+        for (i = 0; i < N; i = i + 1) begin : OUT_FIFOS
+            act_fifo #(
+                .WIDTH(ACC_WIDTH),
+                .DEPTH(OUT_FIFO_DEPTH)
+            ) out_fifo (
+                .clk  (clk),
+                .rst  (rst),
+                .wr_en(out_wr_en[i]),
+                .rd_en(out_rd_en[i]),
+                .din  (acc_stream_out[i]),
+                .dout (out_dout[i]),
+                .full (out_full[i]),
+                .empty(out_empty[i])
+            );
+        end
+    endgenerate
 
 endmodule
