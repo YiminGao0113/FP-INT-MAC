@@ -42,7 +42,8 @@ mm:
 		$(SRC_DIR)/fifo.v \
 		$(SRC_DIR)/fp_int_mac.v \
 		$(SRC_DIR)/fp_int_mul.v \
-		$(SRC_DIR)/fp_int_acc.v
+		$(SRC_DIR)/fp_int_acc.v \
+		$(SRC_DIR)/acc_exp_to_fp16.v
 	vvp $(BUILD_DIR)/mm_tb_dsn
 
 

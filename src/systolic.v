@@ -1,4 +1,3 @@
-
 module systolic #(
     parameter ACT_WIDTH = 16,
     parameter ACC_WIDTH = 32,
@@ -9,69 +8,66 @@ module systolic #(
     input                   active,
     input [3:0]             precision,
     input [ACT_WIDTH-1:0]   act_in [N-1:0],
-    input                  w_in [N-1:0],
+    input                   w_in   [N-1:0],
     input [4:0]             exp_set,
     output                  done,
     output [4:0]            exp_out [N*N-1:0],
     output [ACC_WIDTH-1:0]  acc_out [N*N-1:0],
+
+    // stream out one element per row per cycle for N cycles after row_done_pulse
+    output reg [ACC_WIDTH-1:0]  acc_stream_out [N-1:0],
+
     output [N-1:0]          active_row,
-    output [N-1:0]          active_column
+    output [N-1:0]          active_column,
+
+    output [N-1:0]          row_done_pulse
 );
 
+    // -------------------------
     // Internal signals
-    wire [ACT_WIDTH-1:0] pe_act [0:N][0:N];
-    wire                 pe_w   [0:N][0:N];
+    // -------------------------
+    wire [ACT_WIDTH-1:0] pe_act   [0:N][0:N];
+    wire                 pe_w     [0:N][0:N];
     wire                 pe_valid [0:N][0:N];
     wire [N*N-1:0]       pe_done;
-    wire [4:0]           pe_exp_out [N*N-1:0];
-    wire [ACC_WIDTH-1:0] pe_acc_out [N*N-1:0];
-    // reg  [ACC_WIDTH-1:0] pe_acc_reg [N*N-1:0];
 
-    // FIFO connections between vertically adjacent PEs (for weight and valid)
-    wire fifo_din [(N-1)*N-1:0];
-    wire fifo_dout [(N-1)*N-1:0];
     wire fifo_wr_en [(N-1)*N-1:0];
     wire fifo_rd_en [(N-1)*N-1:0];
-    wire fifo_active [(N-1)*N-1:0];
+    wire fifo_active[(N-1)*N-1:0];
+
     reg active_reg;
-    
     always @(posedge clk or negedge rst) begin
-        if (!rst) active_reg <= 0;
-        else active_reg <= active;
+        if (!rst) active_reg <= 1'b0;
+        else      active_reg <= active;
     end
 
-
+    // -------------------------
+    // PE mesh (unchanged)
+    // -------------------------
     genvar i, j;
     generate
         for (i = 0; i < N; i = i + 1) begin : row
             for (j = 0; j < N; j = j + 1) begin : col
-                wire local_valid, local_valid_for_pe;
-                reg local_valid_reg;
-                reg fifo_empty_reg;
+                wire local_valid;
+                reg  local_valid_reg;
+                reg  fifo_empty_reg;
                 wire fifo_empty;
                 wire _w_input;
                 wire [ACC_WIDTH-1:0] fixed_point_out_temp;
-                // assign local_valid = (i == 0 && j == 0) ? active_reg :
-                //                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
+
                 assign local_valid = (i == 0 && j == 0) ? active_reg :
-                                     (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : pe_valid[i][j-1];
+                                     (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] :
+                                                        pe_valid[i][j-1];
 
-                // assign local_valid_for_pe =  (i == 0 && j == 0) ? active_reg :
-                //                      (j == 0 && i > 0) ? fifo_active[(i-1)*N + j] : previous_pe_generated_valid;
-                // reg local_valid_reg;
-                // wire previous_pe_generated_valid;
-                // assign _w_input = (i < N - 1) ? fifo_din[i*N + j] : 1'b0;
-
-                // assign active_row[i] = (i == 0)? active : fifo_active[(i-1)*N];
-                // assign active_column[j] = (i == 0)? active : pe_valid[0][j-1]
-                // assign active_column[j] = (i == 0)? local_valid : active_row[i];
-
-                always @(posedge clk) begin
-                    fifo_empty_reg <= fifo_empty;
-                    local_valid_reg <= local_valid;
-                    // previous_pe_generated_valid_reg <= pe_valid[i][j-1];
+                always @(posedge clk or negedge rst) begin
+                    if (!rst) begin
+                        fifo_empty_reg  <= 1'b1;
+                        local_valid_reg <= 1'b0;
+                    end else begin
+                        fifo_empty_reg  <= fifo_empty;
+                        local_valid_reg <= local_valid;
+                    end
                 end
-                // assign previous_pe_generated_valid = previous_pe_generated_valid_reg & pe_valid[i][j-1];
 
                 fp_int_mac #(
                     .ACT_WIDTH(ACT_WIDTH),
@@ -79,7 +75,7 @@ module systolic #(
                 ) pe_inst (
                     .clk(clk),
                     .rst(rst),
-                    .valid((j==0)?local_valid_reg: local_valid&local_valid_reg),
+                    .valid((j==0)?local_valid_reg: (local_valid & local_valid_reg)),
                     .precision(precision),
                     .act(pe_act[i][j]),
                     .w(pe_w[i][j]),
@@ -94,32 +90,33 @@ module systolic #(
                 );
 
                 assign acc_out[i*N + j] = fixed_point_out_temp;
-                if (i < N - 1) begin
-                    fifo  #(
+
+                if (i < N - 1) begin : VERT_FIFO
+                    fifo #(
                         .WIDTH(1),
                         .DEPTH(16)
-                    )fifo_inst(
+                    ) fifo_inst (
                         .clk(clk),
                         .rst(rst),
                         .wr_en(fifo_wr_en[i*N + j]),
                         .rd_en(fifo_rd_en[i*N + j]),
                         .din(pe_w[i][j]),
-                        // .precision(precision),
                         .dout(pe_w[i+1][j]),
                         .full(),
                         .empty(fifo_empty)
-                        // ,
-                        // .active(fifo_active[i*N + j])
                     );
 
                     assign fifo_wr_en[i*N + j] = local_valid_reg;
                     assign fifo_rd_en[i*N + j] = !fifo_empty_reg;
-                    assign fifo_active[i*N + j] = (!fifo_empty_reg)&(!fifo_empty);
+                    assign fifo_active[i*N + j] = (!fifo_empty_reg) & (!fifo_empty);
                 end
             end
         end
     endgenerate
 
+    // -------------------------
+    // activity signals (unchanged)
+    // -------------------------
     genvar rr, cc;
     generate
         for (rr = 0; rr < N; rr = rr + 1) begin : gen_active_row
@@ -130,10 +127,7 @@ module systolic #(
         end
     endgenerate
 
-
-
-
-    // Connect the boundary inputs
+    // boundary inputs
     generate
         for (i = 0; i < N; i = i + 1) begin : input_row
             assign pe_act[i][0] = act_in[i];
@@ -143,28 +137,69 @@ module systolic #(
         end
     endgenerate
 
-    // Unused boundary outputs
-    // generate
-    //     for (i = 0; i <= N; i = i + 1) begin
-    //         assign pe_act[i][N] = '0;
-    //     end
-    //     for (j = 0; j <= N; j = j + 1) begin
-    //         assign pe_w[N][j] = '0;
-    //     end
-    // endgenerate
-
-    // Control logic
-    // reg done_tmp;
-
-    // always @(posedge clk or negedge rst) begin
-    //     if (!rst) begin
-    //         done   <= 0;
-    //         done_tmp <= 0;
-    //     end else begin
-    //         done_tmp <= pe_valid[N-1][N-1];
-    //         done <= !pe_valid[N-1][N-1] && done_tmp;
-    //     end
-    // end
     assign done = pe_done[N*N-1];
+
+    // -------------------------
+    // row_done_pulse (unchanged)
+    // -------------------------
+    wire [N-1:0] row_last_valid;
+    reg  [N-1:0] row_last_valid_d;
+
+    generate
+        for (rr = 0; rr < N; rr = rr + 1) begin : GEN_ROW_LAST_VALID
+            assign row_last_valid[rr] = pe_valid[rr][N-1];
+        end
+    endgenerate
+
+    always @(posedge clk or negedge rst) begin
+        if (!rst) row_last_valid_d <= '0;
+        else      row_last_valid_d <= row_last_valid;
+    end
+
+    generate
+        for (rr = 0; rr < N; rr = rr + 1) begin : GEN_ROW_DONE_PULSE
+            assign row_done_pulse[rr] = row_last_valid_d[rr] & ~row_last_valid[rr];
+        end
+    endgenerate
+
+    // =========================================================
+    // NEW: stream-out engine using ONLY row_done_pulse
+    // Each row streams N beats (col 0..N-1) after row_done_pulse.
+    // =========================================================
+    reg [N-1:0] streaming;
+    reg [$clog2(N)-1:0] col_ptr [N-1:0];
+
+    integer r_int;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            streaming <= '0;
+            for (r_int = 0; r_int < N; r_int = r_int + 1) begin
+                col_ptr[r_int] <= '0;
+                acc_stream_out[r_int] <= '0;
+            end
+        end else begin
+            for (r_int = 0; r_int < N; r_int = r_int + 1) begin
+                // start streaming window
+                if (row_done_pulse[r_int]) begin
+                    streaming[r_int] <= 1'b1;
+                    col_ptr[r_int]   <= '0;
+                end
+
+                if (streaming[r_int]) begin
+                    acc_stream_out[r_int] <= acc_out[r_int*N + col_ptr[r_int]];
+
+                    if (col_ptr[r_int] == N-1) begin
+                        streaming[r_int] <= 1'b0;
+                        col_ptr[r_int]   <= '0;
+                    end else begin
+                        col_ptr[r_int] <= col_ptr[r_int] + 1'b1;
+                    end
+                end else begin
+                    // not streaming: drive 0 (don't-care)
+                    acc_stream_out[r_int] <= '0;
+                end
+            end
+        end
+    end
 
 endmodule
