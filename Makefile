@@ -50,6 +50,29 @@ mm4:
 		$(SRC_DIR)/act_fifo4.v
 	vvp $(BUILD_DIR)/mm4_tb.out
 
+# ---- compute_tile (top wrapper) testbench ----
+# Env overrides:
+#   N, MAX_K, K_TILE, K_TOTAL
+MAX_K   ?= 8
+K_TILE  ?= 2
+K_TOTAL ?= $(MAX_K)
+
+tile4:
+	@echo "Building & running compute_tile testbench..."
+	@mkdir -p $(BUILD_DIR)
+	iverilog -g2012 -o $(BUILD_DIR)/tile4_tb.out \
+		-s compute_tile_tb \
+		-Pcompute_tile_tb.N=$(N) \
+		-Pcompute_tile_tb.MAX_K=$(MAX_K) \
+		-Pcompute_tile_tb.K_TILE=$(K_TILE) \
+		-Pcompute_tile_tb.K_TOTAL=$(K_TOTAL) \
+		$(TB_DIR)/compute_tile_tb.v \
+		$(SRC_DIR)/compute_tile.v \
+		$(SRC_DIR)/mm4.v \
+		$(SRC_DIR)/systolic4.v \
+		$(SRC_DIR)/mac4.v \
+		$(SRC_DIR)/act_fifo4.v
+	vvp $(BUILD_DIR)/tile4_tb.out
 
 mm:
 	@echo "Running mm_tb with systolic..."

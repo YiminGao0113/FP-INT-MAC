@@ -1,31 +1,43 @@
 module mac_comp #
 (
-    parameter D_W       = 4,   // input bitwidth
-    parameter ACC_WIDTH = 16   // accumulator bitwidth
+    parameter D_W       = 4,
+    parameter ACC_WIDTH = 16
 )
 (
     input  wire                  clk,
-    input  wire                  rst,   // synchronous reset
-    input  wire                  en,    // enable signal
-    input  wire [D_W-1:0]        a,     // input a
-    input  wire [D_W-1:0]        b,     // input b
-    output reg  [ACC_WIDTH-1:0]  acc    // accumulator
+    input  wire                  rst,   // active-low, synchronous (matches your style)
+    input  wire                  en,
+    input  wire [D_W-1:0]        a,
+    input  wire [D_W-1:0]        b,
+    output reg  [ACC_WIDTH-1:0]  acc
 );
 
-    // product has width = 2*D_W
     wire [2*D_W-1:0] prod;
-    
-
     assign prod = a * b;
 
+    reg  en_d;
+    wire en_rise = en & ~en_d;
+
     always @(posedge clk) begin
-        if (!rst)
-            acc <= {ACC_WIDTH{1'b0}};
-        else if (en)
-            acc <= acc + prod;
+        if (!rst) begin
+            acc  <= {ACC_WIDTH{1'b0}};
+            en_d <= 1'b0;
+        end else begin
+            en_d <= en;
+
+            // First cycle of a "pass": reset + take first product
+            if (en_rise) begin
+                acc <= {{(ACC_WIDTH-2*D_W){1'b0}}, prod};
+            end
+            // Remaining enabled cycles: accumulate
+            else if (en) begin
+                acc <= acc + {{(ACC_WIDTH-2*D_W){1'b0}}, prod};
+            end
+        end
     end
 
 endmodule
+
 // Wrapper PE with systolic forwarding and configurable delay
 module mac #
 (
