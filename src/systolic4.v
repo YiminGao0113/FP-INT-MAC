@@ -7,11 +7,11 @@ module systolic_array #(
     input  wire                    rst,
     input  wire                    en,
 
-    input  wire [D_W-1:0]          a_in [0:N-1],
-    input  wire [D_W-1:0]          b_in [0:N-1],
+    input  wire signed [D_W-1:0]          a_in [0:N-1],
+    input  wire signed [D_W-1:0]          b_in [0:N-1],
 
-    output wire [ACC_WIDTH-1:0]    c_out [0:N-1][0:N-1],
-    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0],
+    output wire signed [ACC_WIDTH-1:0]    c_out [0:N-1][0:N-1],
+    output wire signed [ACC_WIDTH-1:0]    acc_out [N*N-1:0],
 
     output reg                     done,
 
@@ -20,16 +20,16 @@ module systolic_array #(
 
     // NEW
     output wire [N-1:0]            row_done_pulse,
-    output reg  [ACC_WIDTH-1:0]    acc_stream_out [N-1:0]
+    output reg  signed [ACC_WIDTH-1:0]    acc_stream_out [N-1:0]
 );
 
     // ------------------------------------------------------------
     // Internal systolic signals (UNCHANGED)
     // ------------------------------------------------------------
-    wire [D_W-1:0] a_sig     [0:N][0:N-1];
-    wire [D_W-1:0] a_sig_out [0:N][0:N-1];
-    wire [D_W-1:0] b_sig     [0:N-1][0:N];
-    wire [D_W-1:0] b_sig_out [0:N-1][0:N];
+    wire signed [D_W-1:0]  a_sig     [0:N][0:N-1];
+    wire signed [D_W-1:0]  a_sig_out [0:N][0:N-1];
+    wire signed [D_W-1:0]  b_sig     [0:N-1][0:N];
+    wire signed [D_W-1:0]  b_sig_out [0:N-1][0:N];
     wire           en_sig    [0:N][0:N-1];
     wire           en_sig_out[0:N][0:N-1];
 

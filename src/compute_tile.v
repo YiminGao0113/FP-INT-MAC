@@ -37,9 +37,9 @@ module compute_tile #(
     output reg                          busy,
     output reg                          done,     // 1-cycle pulse
 
-    input  wire [ACT_WIDTH-1:0]         act_mem [0:N*MAX_K-1],
-    input  wire [ACT_WIDTH-1:0]         w_mem   [0:N*MAX_K-1],
-    output reg  [ACC_WIDTH-1:0]         out_mem [0:N*N-1]
+    input   wire [ACT_WIDTH-1:0]         act_mem [0:N*MAX_K-1],
+    input   wire [ACT_WIDTH-1:0]         w_mem   [0:N*MAX_K-1],
+    output  reg  [ACC_WIDTH-1:0]         out_mem [0:N*N-1]
 );
 
     // ------------------------------------------------------------
@@ -53,15 +53,15 @@ module compute_tile #(
     // ------------------------------------------------------------
     reg                    mm_active;
     reg                    mm_wr_en_act, mm_wr_en_w;
-    reg  [ACT_WIDTH-1:0]   mm_ain [0:N-1];
-    reg  [ACT_WIDTH-1:0]   mm_bin [0:N-1];
+    reg  signed [ACT_WIDTH-1:0]   mm_ain [0:N-1];
+    reg  signed [ACT_WIDTH-1:0]   mm_bin [0:N-1];
 
     wire                   mm_done;
-    wire [ACC_WIDTH-1:0]   mm_acc_out [0:N*N-1]; // unused here, but kept
+    wire signed [ACC_WIDTH-1:0]   mm_acc_out [0:N*N-1]; // unused here, but kept
     reg  [N-1:0]           out_rd_en;
     wire [N-1:0]           out_empty;
     wire [N-1:0]           out_full;
-    wire [ACC_WIDTH-1:0]   out_dout [0:N-1];
+    wire signed [ACC_WIDTH-1:0]   out_dout [0:N-1];
 
     // ------------------------------------------------------------
     // Instantiate mm

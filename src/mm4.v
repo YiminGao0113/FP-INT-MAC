@@ -7,56 +7,71 @@ module mm #(
     parameter OUT_FIFO_DEPTH = 32,
     parameter PIPE_LAT = 1   // latency from row_done_pulse -> first valid acc_stream_out
 )(
-    input  wire                    clk,
-    input  wire                    rst,
-    input  wire                    active,
-    input  wire [ACT_WIDTH-1:0]    ain [N-1:0],
-    input  wire [ACT_WIDTH-1:0]    bin [N-1:0],
-    input  wire                    wr_en_act,
-    input  wire                    wr_en_w,
+    input  wire                         clk,
+    input  wire                         rst,
+    input  wire                         active,
 
-    output wire                    done,
-    output wire [ACC_WIDTH-1:0]    acc_out [N*N-1:0],
+    // signed inputs into mm
+    input  wire signed [ACT_WIDTH-1:0]  ain [N-1:0],
+    input  wire signed [ACT_WIDTH-1:0]  bin [N-1:0],
+
+    input  wire                         wr_en_act,
+    input  wire                         wr_en_w,
+
+    output wire                         done,
+    output wire signed [ACC_WIDTH-1:0]  acc_out [N*N-1:0],
 
     // per-row output FIFO
-    input  wire [N-1:0]            out_rd_en,
-    output wire [N-1:0]            out_empty,
-    output wire [N-1:0]            out_full,
-    output wire [ACC_WIDTH-1:0]    out_dout [N-1:0]
+    input  wire [N-1:0]                 out_rd_en,
+    output wire [N-1:0]                 out_empty,
+    output wire [N-1:0]                 out_full,
+
+    // signed outputs from output FIFOs
+    output wire signed [ACC_WIDTH-1:0]  out_dout [N-1:0]
 );
 
     // ============================================================
-    // Input FIFOs
+    // Input FIFOs (store unsigned bits, then cast to signed)
     // ============================================================
-    wire [ACT_WIDTH-1:0] act_fifo_a_out [N-1:0];
-    wire [ACT_WIDTH-1:0] act_fifo_b_out [N-1:0];
-    wire [N-1:0]         active_row;
-    wire [N-1:0]         active_column;
+    wire [ACT_WIDTH-1:0] act_fifo_a_u [N-1:0];
+    wire [ACT_WIDTH-1:0] act_fifo_b_u [N-1:0];
+
+    wire signed [ACT_WIDTH-1:0] act_fifo_a_out [N-1:0];
+    wire signed [ACT_WIDTH-1:0] act_fifo_b_out [N-1:0];
+
+    // active_row/active_column drive FIFO reads
+    wire [N-1:0] active_row;
+    wire [N-1:0] active_column;
 
     genvar i;
     generate
         for (i = 0; i < N; i = i + 1) begin : IN_FIFOS
             act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) fifo_a (
-                .clk(clk),
-                .rst(rst),
-                .wr_en(wr_en_act),
-                .rd_en(active_row[i]),
-                .din(ain[i]),
-                .dout(act_fifo_a_out[i]),
-                .full(),
-                .empty()
+                .clk   (clk),
+                .rst   (rst),
+                .wr_en (wr_en_act),
+                .rd_en (active_row[i]),
+                // cast signed -> raw bits into FIFO
+                .din   (ain[i][ACT_WIDTH-1:0]),
+                .dout  (act_fifo_a_u[i]),
+                .full  (),
+                .empty ()
             );
 
             act_fifo #(.WIDTH(ACT_WIDTH), .DEPTH(ACT_FIFO_DEPTH)) fifo_b (
-                .clk(clk),
-                .rst(rst),
-                .wr_en(wr_en_w),
-                .rd_en(active_column[i]),
-                .din(bin[i]),
-                .dout(act_fifo_b_out[i]),
-                .full(),
-                .empty()
+                .clk   (clk),
+                .rst   (rst),
+                .wr_en (wr_en_w),
+                .rd_en (active_column[i]),
+                .din   (bin[i][ACT_WIDTH-1:0]),
+                .dout  (act_fifo_b_u[i]),
+                .full  (),
+                .empty ()
             );
+
+            // signed "view" of FIFO outputs
+            assign act_fifo_a_out[i] = $signed(act_fifo_a_u[i]);
+            assign act_fifo_b_out[i] = $signed(act_fifo_b_u[i]);
         end
     endgenerate
 
@@ -75,36 +90,44 @@ module mm #(
     end
 
     // ============================================================
-    // Systolic array
+    // Systolic array (must accept signed a_in/b_in internally)
     // ============================================================
-    wire [ACC_WIDTH-1:0] acc_stream_out [N-1:0];
-    wire [N-1:0]         row_done_pulse;
+    wire signed [ACC_WIDTH-1:0] acc_stream_out [N-1:0];
+    wire [N-1:0]                row_done_pulse;
 
     systolic_array #(
         .D_W(ACT_WIDTH),
         .ACC_WIDTH(ACC_WIDTH),
         .N(N)
     ) systolic_inst (
-        .clk(clk),
-        .rst(rst),
-        .en(__active),
-        .a_in(act_fifo_a_out),
-        .b_in(act_fifo_b_out),
-        .done(done),
-        .acc_out(acc_out),
-        .acc_stream_out(acc_stream_out),
-        .row_done_pulse(row_done_pulse),
-        .active_row(active_row),
-        .active_column(active_column)
+        .clk            (clk),
+        .rst            (rst),
+        .en             (__active),
+
+        // IMPORTANT: these are signed now
+        .a_in            (act_fifo_a_out),
+        .b_in            (act_fifo_b_out),
+
+        .done           (done),
+
+        // ideally make these signed too in systolic_array, but if not,
+        // you can keep them unsigned and cast at the very end.
+        .acc_out         (acc_out),
+
+        .acc_stream_out  (acc_stream_out),
+        .row_done_pulse  (row_done_pulse),
+
+        .active_row      (active_row),
+        .active_column   (active_column)
     );
 
     // ============================================================
-    // Stream control (FIXED)
+    // Stream control (same logic)
     // ============================================================
     reg [N-1:0] streaming;
     reg [N-1:0] stream_valid;
-    reg [$clog2(N):0] cnt [N-1:0];
-    reg [$clog2(PIPE_LAT+1):0] lat_cnt [N-1:0];
+    reg [$clog2(N):0]            cnt [N-1:0];
+    reg [$clog2(PIPE_LAT+1):0]   lat_cnt [N-1:0];
 
     integer r;
     always @(posedge clk or negedge rst) begin
@@ -127,13 +150,16 @@ module mm #(
 
                 // wait for pipeline latency
                 if (streaming[r] && !stream_valid[r]) begin
-                    if (lat_cnt[r] == PIPE_LAT-1)
+                    if (PIPE_LAT == 0) begin
                         stream_valid[r] <= 1'b1;
-                    else
+                    end else if (lat_cnt[r] == PIPE_LAT-1) begin
+                        stream_valid[r] <= 1'b1;
+                    end else begin
                         lat_cnt[r] <= lat_cnt[r] + 1'b1;
+                    end
                 end
 
-                // stream data
+                // stream data for N cycles
                 if (stream_valid[r]) begin
                     if (cnt[r] == N-1) begin
                         streaming[r]    <= 1'b0;
@@ -148,7 +174,7 @@ module mm #(
     end
 
     // ============================================================
-    // Output FIFOs (NOW ALIGNED)
+    // Output FIFOs: store raw bits, cast to signed at output
     // ============================================================
     wire [N-1:0] out_wr_en;
     generate
@@ -157,21 +183,29 @@ module mm #(
         end
     endgenerate
 
+    wire [ACC_WIDTH-1:0] out_dout_u [N-1:0];
+
     generate
         for (i = 0; i < N; i = i + 1) begin : OUT_FIFOS
             act_fifo #(
                 .WIDTH(ACC_WIDTH),
                 .DEPTH(OUT_FIFO_DEPTH)
             ) out_fifo (
-                .clk  (clk),
-                .rst  (rst),
-                .wr_en(out_wr_en[i]),
-                .rd_en(out_rd_en[i]),
-                .din  (acc_stream_out[i]),
-                .dout (out_dout[i]),
-                .full (out_full[i]),
-                .empty(out_empty[i])
+                .clk   (clk),
+                .rst   (rst),
+                .wr_en (out_wr_en[i]),
+                .rd_en (out_rd_en[i]),
+
+                // signed -> raw bits into FIFO
+                .din   (acc_stream_out[i][ACC_WIDTH-1:0]),
+                .dout  (out_dout_u[i]),
+
+                .full  (out_full[i]),
+                .empty (out_empty[i])
             );
+
+            // signed view for external users
+            assign out_dout[i] = $signed(out_dout_u[i]);
         end
     endgenerate
 

@@ -4,15 +4,15 @@ module mac_comp #
     parameter ACC_WIDTH = 16
 )
 (
-    input  wire                  clk,
-    input  wire                  rst,   // active-low, synchronous (matches your style)
-    input  wire                  en,
-    input  wire [D_W-1:0]        a,
-    input  wire [D_W-1:0]        b,
-    output reg  [ACC_WIDTH-1:0]  acc
+    input  wire                         clk,
+    input  wire                         rst,   // active-low, synchronous (matches your style)
+    input  wire                         en,
+    input  wire signed [D_W-1:0]        a,
+    input  wire signed [D_W-1:0]        b,
+    output reg  [ACC_WIDTH-1:0]         acc
 );
 
-    wire [2*D_W-1:0] prod;
+    wire signed [2*D_W-1:0] prod;
     assign prod = a * b;
 
     reg  en_d;
@@ -27,11 +27,11 @@ module mac_comp #
 
             // First cycle of a "pass": reset + take first product
             if (en_rise) begin
-                acc <= {{(ACC_WIDTH-2*D_W){1'b0}}, prod};
+                acc <= {{(ACC_WIDTH-2*D_W){prod[2*D_W-1]}}, prod};
             end
             // Remaining enabled cycles: accumulate
             else if (en) begin
-                acc <= acc + {{(ACC_WIDTH-2*D_W){1'b0}}, prod};
+                acc <= acc + {{(ACC_WIDTH-2*D_W){prod[2*D_W-1]}}, prod};
             end
         end
     end
@@ -49,13 +49,13 @@ module mac #
     input  wire                  clk,
     input  wire                  rst,
     input  wire                  en,
-    input  wire [D_W-1:0]        a,
-    input  wire [D_W-1:0]        b,
-    output wire [ACC_WIDTH-1:0]  acc,
+    input  wire signed [D_W-1:0]        a,
+    input  wire signed [D_W-1:0]        b,
+    output wire signed [ACC_WIDTH-1:0]  acc,
 
     // systolic pass-through (delayed by PROP_DELAY cycles)
-    output wire [D_W-1:0]        a_out,
-    output wire [D_W-1:0]        b_out,
+    output wire signed [D_W-1:0]        a_out,
+    output wire signed [D_W-1:0]        b_out,
     output wire                  en_out
 );
 
