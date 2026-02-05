@@ -11,14 +11,14 @@ module mm_tb;
     reg clk, rst, active;
     reg wr_en_act, wr_en_w;
 
-    reg [ACT_WIDTH-1:0] act_din [0:N-1];
-    reg [ACT_WIDTH-1:0] w_din   [0:N-1];
+    reg signed [ACT_WIDTH-1:0]  act_din [0:N-1];
+    reg signed [ACT_WIDTH-1:0]  w_din   [0:N-1];
 
     // Output FIFO interface
     reg  [N-1:0]         out_rd_en;
     wire [N-1:0]         out_empty;
     wire [N-1:0]         out_full;
-    wire [ACC_WIDTH-1:0] out_dout [N-1:0];
+    wire signed [ACC_WIDTH-1:0] out_dout [N-1:0];
 
     wire done;
 
